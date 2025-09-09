@@ -43,8 +43,6 @@ class DataProcessor:
             print(f"JSON解析错误: {e}")
             return {}
     
-
-    
     def get_valid_values_map(self) -> Dict[str, set]:
         """
         定义各字段的合法值集合
@@ -144,6 +142,8 @@ class DataProcessor:
                 else:
                     return None
             
+            if value == '':
+                return None
             return value
         except (KeyError, IndexError, ValueError, TypeError):
             return None
@@ -196,7 +196,7 @@ class DataProcessor:
             elif isinstance(value, list):
                 raise ValueError(f"无法处理列表类型的特征: {feature}")
             
-            extracted[feature] = value if value != '' else None
+            extracted[feature] = value
         
         return extracted
     
@@ -280,14 +280,14 @@ class DataProcessor:
             'data': cleaned_partner_data
         }
     
-    def analyze_features(self, feature_list: List[str], feature_types: Optional[List[str]] = None, processed_data: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> Dict[str, Any]:
+    def analyze_features(self, feature_list: List[str], feature_types: Optional[List[str]] = None, processed_data: Dict[str, List[Dict[str, Any]]]= None) -> Dict[str, Any]:
         """
         基于清理后的数据分析特征的分布情况
         
         Args:
             feature_list: 要分析的特征列表
             feature_types: 特征类型列表，可选值为 'numeric' 或 'categorical'，与feature_list长度相同
-            processed_data: 可选的已处理数据，格式为 {partner_code: [record_list]}
+            processed_data: 已处理数据，格式为 {partner_code: [record_list]}
             
         Returns:
             特征分析结果
@@ -302,40 +302,14 @@ class DataProcessor:
             if invalid_types:
                 raise ValueError(f"无效的特征类型: {invalid_types}，只支持: {valid_types}")
         
-        # 如果提供了处理后的数据，直接使用
-        if processed_data is not None:
-            print(f"基于 {len(processed_data)} 个合作方的内存数据进行特征分析...")
-            
-            # 合并所有处理后的数据
-            all_records = []
-            for partner_code, records in processed_data.items():
-                all_records.extend(records)
-            
-            # 转换为DataFrame
-            combined_df = pd.DataFrame(all_records)
-            print(f"合并后的总数据量: {len(combined_df)} 条记录")
-        else:
-            # 回退到从文件读取数据
-            if not os.path.exists(self.output_dir):
-                raise FileNotFoundError(f"未找到处理后的数据目录: {self.output_dir}。请先运行 process_data_by_partner() 方法。")
-            
-            # 获取所有处理后的CSV文件
-            csv_files = [f for f in os.listdir(self.output_dir) if f.endswith('.csv')]
-            if not csv_files:
-                raise FileNotFoundError(f"在 {self.output_dir} 目录中未找到处理后的CSV文件。请先运行 process_data_by_partner() 方法。")
-            
-            print(f"基于 {len(csv_files)} 个合作方的清理后数据进行特征分析...")
-            
-            # 合并所有处理后的数据
-            all_cleaned_data = []
-            for csv_file in csv_files:
-                file_path = os.path.join(self.output_dir, csv_file)
-                df = pd.read_csv(file_path)
-                all_cleaned_data.append(df)
-            
-            # 合并所有数据
-            combined_df = pd.concat(all_cleaned_data, ignore_index=True)
-            print(f"合并后的总数据量: {len(combined_df)} 条记录")
+        # 合并所有处理后的数据
+        all_records = []
+        for partner_code, records in processed_data.items():
+            all_records.extend(records)
+        
+        # 转换为DataFrame
+        combined_df = pd.DataFrame(all_records)
+        print(f"合并后的总数据量: {len(combined_df)} 条记录")
         
         analysis_results = {}
         
