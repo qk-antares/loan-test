@@ -3,9 +3,7 @@ import json
 import os
 from typing import List, Dict, Any, Optional
 from collections import defaultdict, Counter
-from datetime import datetime, timedelta
-import re
-from utils import (
+from utils.date_util import (
     extract_request_date_from_id, parse_birth_date, parse_validity_date,
     calculate_age_years, calculate_validity_days, process_nation_field
 )
@@ -67,13 +65,16 @@ class DataProcessor:
                                     'I', 'G', 'J', 'P', 'M', 'Q', 'S', 'T', 'Z'},
             'companyInfo.occupation': {'11', '13', '17', '21', '24', '27', '31', '37', '51', 
                                       '54', '70', '80', '90', '91', '99'},
-            'customerSource': {'APP', 'XCX'},
             'idInfo.nation': {'汉', '壮', '满', '回', '苗', '维吾尔', '彝', '土家', '藏', '蒙古', 
                              '侗', '布依', '瑶', '白', '朝鲜', '哈尼', '黎', '哈萨克', '傣', '畲', 
                              '傈僳', '东乡', '仡佬', '拉祜', '佤', '水', '纳西', '羌', '土', '仫佬', 
                              '锡伯', '柯尔克孜', '景颇', '达斡尔', '撒拉', '布朗', '毛南', '塔吉克', 
                              '普米', '阿昌', '怒', '鄂温克', '京', '基诺', '德昂', '保安', '俄罗斯', 
-                             '裕固', '乌孜别克', '门巴', '鄂伦春', '独龙', '赫哲', '高山', '珞巴', '塔塔尔'}
+                             '裕固', '乌孜别克', '门巴', '鄂伦春', '独龙', '赫哲', '高山', '珞巴', '塔塔尔'},
+            'idInfo.gender': {'M', 'F'},
+            'customerSource': {'APP', 'XCX'},
+            'jobFunctions': {'01', '02', '03'},
+            'resideFunctions': {'01', '02', '03', '04'}
         }
     
     def clean_data(self, data_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -195,7 +196,7 @@ class DataProcessor:
             elif isinstance(value, list):
                 raise ValueError(f"无法处理列表类型的特征: {feature}")
             
-            extracted[feature] = value
+            extracted[feature] = value if value != '' else None
         
         return extracted
     
@@ -247,6 +248,7 @@ class DataProcessor:
         print("生成CSV文件...")
         
         partner_counts = {}
+        cleaned_partner_data = {}
         
         for partner_code, data_list in partner_data.items():
             if not data_list:
@@ -265,20 +267,27 @@ class DataProcessor:
             
             partner_counts[partner_code] = len(cleaned_data_list)
             print(f"已生成 {output_file}，包含 {len(cleaned_data_list)} 条记录")
+            
+            # 保存清理后的数据
+            cleaned_partner_data[partner_code] = cleaned_data_list
         
         if error_count > 0:
             print(f"警告: 有 {error_count} 条记录因JSON解析错误被跳过")
         
-        return partner_counts
+        # 根据return_data参数决定返回内容
+        return {
+            'counts': partner_counts,
+            'data': cleaned_partner_data
+        }
     
-    def analyze_features(self, feature_list: List[str], feature_types: Optional[List[str]] = None) -> Dict[str, Any]:
+    def analyze_features(self, feature_list: List[str], feature_types: Optional[List[str]] = None, processed_data: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> Dict[str, Any]:
         """
-        分析特征的分布情况
+        基于清理后的数据分析特征的分布情况
         
         Args:
             feature_list: 要分析的特征列表
             feature_types: 特征类型列表，可选值为 'numeric' 或 'categorical'，与feature_list长度相同
-            sample_size: 用于分析的样本大小
+            processed_data: 可选的已处理数据，格式为 {partner_code: [record_list]}
             
         Returns:
             特征分析结果
@@ -293,7 +302,40 @@ class DataProcessor:
             if invalid_types:
                 raise ValueError(f"无效的特征类型: {invalid_types}，只支持: {valid_types}")
         
-        df = pd.read_csv(self.data_file)
+        # 如果提供了处理后的数据，直接使用
+        if processed_data is not None:
+            print(f"基于 {len(processed_data)} 个合作方的内存数据进行特征分析...")
+            
+            # 合并所有处理后的数据
+            all_records = []
+            for partner_code, records in processed_data.items():
+                all_records.extend(records)
+            
+            # 转换为DataFrame
+            combined_df = pd.DataFrame(all_records)
+            print(f"合并后的总数据量: {len(combined_df)} 条记录")
+        else:
+            # 回退到从文件读取数据
+            if not os.path.exists(self.output_dir):
+                raise FileNotFoundError(f"未找到处理后的数据目录: {self.output_dir}。请先运行 process_data_by_partner() 方法。")
+            
+            # 获取所有处理后的CSV文件
+            csv_files = [f for f in os.listdir(self.output_dir) if f.endswith('.csv')]
+            if not csv_files:
+                raise FileNotFoundError(f"在 {self.output_dir} 目录中未找到处理后的CSV文件。请先运行 process_data_by_partner() 方法。")
+            
+            print(f"基于 {len(csv_files)} 个合作方的清理后数据进行特征分析...")
+            
+            # 合并所有处理后的数据
+            all_cleaned_data = []
+            for csv_file in csv_files:
+                file_path = os.path.join(self.output_dir, csv_file)
+                df = pd.read_csv(file_path)
+                all_cleaned_data.append(df)
+            
+            # 合并所有数据
+            combined_df = pd.concat(all_cleaned_data, ignore_index=True)
+            print(f"合并后的总数据量: {len(combined_df)} 条记录")
         
         analysis_results = {}
         
@@ -301,19 +343,20 @@ class DataProcessor:
         for i, feature in enumerate(feature_list):
             print(f"分析特征: {feature}")
             
-            feature_values = []
-            for _, row in df.iterrows():
-                request_id = row['id']
-                message = row['报文']
-                json_data = self.parse_json_message(message)
-                if json_data:
-                    # 使用extract_features方法来正确处理日期字段
-                    extracted = self.extract_features(json_data, [feature], request_id)
-                    value = extracted.get(feature)
-                    if value is not None:
-                        feature_values.append(str(value))
+            if feature not in combined_df.columns:
+                print(f"警告: 特征 '{feature}' 在处理后的数据中不存在，跳过分析")
+                analysis_results[feature] = {
+                    'type': 'missing',
+                    'count': 0,
+                    'unique_count': 0,
+                    'values': {}
+                }
+                continue
             
-            if not feature_values:
+            # 获取非空值
+            feature_series = combined_df[feature].dropna()
+            
+            if len(feature_series) == 0:
                 analysis_results[feature] = {
                     'type': 'empty',
                     'count': 0,
@@ -322,10 +365,14 @@ class DataProcessor:
                 }
                 continue
             
+            # 转换为字符串进行统计
+            feature_values = feature_series.astype(str).tolist()
+            
             # 统计分析
             value_counts = Counter(feature_values)
             total_count = len(feature_values)
             unique_count = len(value_counts)
+            null_count = combined_df[feature].isnull().sum()
             
             # 判断数据类型
             specified_type = feature_types[i] if feature_types else None
@@ -333,22 +380,34 @@ class DataProcessor:
             if specified_type == 'numeric':
                 # 手动指定为数值型
                 try:
-                    numeric_values = [float(v) for v in feature_values]
-                    analysis_results[feature] = {
-                        'type': 'numeric',
-                        'count': total_count,
-                        'unique_count': unique_count,
-                        'min': min(numeric_values),
-                        'max': max(numeric_values),
-                        'mean': sum(numeric_values) / len(numeric_values),
-                        'top_values': dict(value_counts.most_common(10))
-                    }
+                    numeric_values = [float(v) for v in feature_values if v != 'nan']
+                    if numeric_values:
+                        analysis_results[feature] = {
+                            'type': 'numeric',
+                            'count': total_count,
+                            'null_count': null_count,
+                            'unique_count': unique_count,
+                            'min': min(numeric_values),
+                            'max': max(numeric_values),
+                            'mean': sum(numeric_values) / len(numeric_values),
+                            'top_values': dict(value_counts.most_common(10))
+                        }
+                    else:
+                        # 没有有效的数值数据
+                        analysis_results[feature] = {
+                            'type': 'empty',
+                            'count': total_count,
+                            'null_count': null_count,
+                            'unique_count': unique_count,
+                            'values': {}
+                        }
                 except (ValueError, TypeError):
                     # 如果无法转换为数值，则作为分类型处理
                     print(f"警告: {feature} 指定为numeric但包含非数值数据，将作为categorical处理")
                     analysis_results[feature] = {
                         'type': 'categorical',
                         'count': total_count,
+                        'null_count': null_count,
                         'unique_count': unique_count,
                         'values': dict(value_counts.most_common(20))
                     }
@@ -357,6 +416,7 @@ class DataProcessor:
                 analysis_results[feature] = {
                     'type': 'categorical',
                     'count': total_count,
+                    'null_count': null_count,
                     'unique_count': unique_count,
                     'values': dict(value_counts.most_common(20))
                 }
@@ -364,18 +424,20 @@ class DataProcessor:
                 # 自动判断数据类型
                 numeric_values = []
                 for v in feature_values:
-                    try:
-                        numeric_values.append(float(v))
-                    except (ValueError, TypeError):
-                        break
+                    if v != 'nan':
+                        try:
+                            numeric_values.append(float(v))
+                        except (ValueError, TypeError):
+                            break
                 
-                is_numeric = len(numeric_values) == len(feature_values)
+                is_numeric = len(numeric_values) == len([v for v in feature_values if v != 'nan'])
                 
-                if is_numeric and unique_count > 10:
+                if is_numeric and unique_count > 10 and len(numeric_values) > 0:
                     # 数值型特征
                     analysis_results[feature] = {
                         'type': 'numeric',
                         'count': total_count,
+                        'null_count': null_count,
                         'unique_count': unique_count,
                         'min': min(numeric_values),
                         'max': max(numeric_values),
@@ -387,24 +449,26 @@ class DataProcessor:
                     analysis_results[feature] = {
                         'type': 'categorical',
                         'count': total_count,
+                        'null_count': null_count,
                         'unique_count': unique_count,
-                        'values': dict(value_counts.most_common(20))  # 只显示前20个最常见的值
+                        'values': dict(value_counts.most_common(20))
                     }
         
         # 分析结果标签
         print("分析结果标签...")
-        result_counts = Counter()
-        for _, row in df.iterrows():
-            result = row['结果']
-            label = 1 if result == '成功' else 0
-            result_counts[label] += 1
-        
-        analysis_results['label'] = {
-            'type': 'categorical',
-            'count': len(df),
-            'unique_count': len(result_counts),
-            'values': dict(result_counts)
-        }
+        if 'label' in combined_df.columns:
+            label_series = combined_df['label'].dropna()
+            result_counts = Counter(label_series.astype(int))
+            
+            analysis_results['label'] = {
+                'type': 'categorical',
+                'count': len(label_series),
+                'null_count': combined_df['label'].isnull().sum(),
+                'unique_count': len(result_counts),
+                'values': dict(result_counts)
+            }
+        else:
+            print("警告: 标签列不存在于处理后的数据中")
         
         return analysis_results
     
@@ -416,28 +480,34 @@ class DataProcessor:
             analysis_results: 分析结果
         """
         print("\n" + "="*60)
-        print("特征分析报告")
+        print("特征分析报告 (基于清理后的数据)")
         print("="*60)
         
         for feature, stats in analysis_results.items():
             print(f"\n特征: {feature}")
             print("-" * 40)
             print(f"数据类型: {stats['type']}")
-            print(f"总数: {stats['count']}")
+            print(f"有效数据数: {stats['count']}")
+            if 'null_count' in stats:
+                print(f"空值数量: {stats['null_count']}")
             print(f"唯一值数量: {stats['unique_count']}")
             
             if stats['type'] == 'numeric':
                 print(f"最小值: {stats['min']}")
                 print(f"最大值: {stats['max']}")
                 print(f"平均值: {stats['mean']:.2f}")
-                print("最常见的值:")
-                for value, count in stats['top_values'].items():
-                    print(f"  {value}: {count}")
+                if 'top_values' in stats:
+                    print("最常见的值:")
+                    for value, count in stats['top_values'].items():
+                        print(f"  {value}: {count}")
             elif stats['type'] == 'categorical':
-                print("值分布:")
-                for value, count in stats['values'].items():
-                    percentage = (count / stats['count']) * 100
-                    print(f"  {value}: {count} ({percentage:.1f}%)")
+                if 'values' in stats:
+                    print("值分布:")
+                    for value, count in stats['values'].items():
+                        percentage = (count / stats['count']) * 100
+                        print(f"  {value}: {count} ({percentage:.1f}%)")
+            elif stats['type'] in ['empty', 'missing']:
+                print("注意: 该特征没有有效数据")
 
 def main():
     """主函数，演示数据处理流程"""
@@ -448,7 +518,7 @@ def main():
     feature_list = [
         'amount',
         'bankCardInfo.bankCode',
-        'bankCardInfo.cardType',
+        # 'bankCardInfo.cardType',
         'city',
         'companyInfo.companyName',
         'companyInfo.industry',
@@ -475,7 +545,7 @@ def main():
     feature_types = [
         'numeric',      # amount - 数值型
         'categorical',  # bankCardInfo.bankCode - 虽然是数字但是分类属性
-        'categorical',  # bankCardInfo.cardType - 分类型
+        # 'categorical',  # bankCardInfo.cardType - 分类型
         'categorical',  # city - 分类型
         'categorical',  # companyInfo.companyName - 分类型
         'categorical',  # companyInfo.industry - 分类型
@@ -504,7 +574,11 @@ def main():
     
     # 处理数据并按合作方生成CSV文件
     print("\n开始数据处理...")
-    partner_counts = processor.process_data_by_partner(feature_list)
+    process_result = processor.process_data_by_partner(feature_list)
+    
+    # 提取结果
+    partner_counts = process_result['counts']
+    processed_data = process_result['data']
     
     # 打印处理结果统计
     print("\n处理结果统计:")
@@ -512,9 +586,9 @@ def main():
     for partner, count in sorted(partner_counts.items(), key=lambda x: x[1], reverse=True):
         print(f"{partner}: {count} 条记录")
     
-    # 进行特征分析（使用指定的特征类型）
-    print("\n开始特征分析（使用指定类型）...")
-    analysis_results = processor.analyze_features(feature_list, feature_types)
+    # 进行特征分析（使用内存中的处理后数据）
+    print("\n开始特征分析（基于内存数据）...")
+    analysis_results = processor.analyze_features(feature_list, feature_types, processed_data)
     
     # 打印分析报告
     processor.print_analysis_report(analysis_results)
