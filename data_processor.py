@@ -1,10 +1,14 @@
 import pandas as pd
 import json
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 import re
+from utils import (
+    extract_request_date_from_id, parse_birth_date, parse_validity_date,
+    calculate_age_years, calculate_validity_days, process_nation_field
+)
 
 class DataProcessor:
     """
@@ -41,103 +45,7 @@ class DataProcessor:
             print(f"JSON解析错误: {e}")
             return {}
     
-    def extract_request_date_from_id(self, request_id: str) -> datetime:
-        """
-        从请求ID中提取请求日期
-        
-        Args:
-            request_id: 请求ID，格式如 "20250901000009716202"
-            
-        Returns:
-            请求日期的datetime对象
-        """
-        try:
-            # 提取前8位作为日期部分
-            date_str = request_id[:8]
-            return datetime.strptime(date_str, '%Y%m%d')
-        except (ValueError, IndexError):
-            # 如果解析失败，返回一个默认日期
-            return datetime(2025, 9, 3)
-    
-    def parse_birth_date(self, birth_date_str: str) -> datetime:
-        """
-        解析出生日期字符串
-        
-        Args:
-            birth_date_str: 出生日期字符串，格式如 "19930125"
-            
-        Returns:
-            出生日期的datetime对象
-        """
-        try:
-            return datetime.strptime(birth_date_str, '%Y%m%d')
-        except ValueError:
-            # 如果解析失败，返回None
-            return None
-    
-    def parse_validity_date(self, validity_date_str: str) -> tuple:
-        """
-        解析证件有效期字符串
-        
-        Args:
-            validity_date_str: 有效期字符串，格式如 "2024.10.28-2044.10.28" 或 "2018.01.20-长期"
-            
-        Returns:
-            (开始日期, 结束日期) 的tuple，如果是长期则结束日期为None
-        """
-        try:
-            if '-长期' in validity_date_str:
-                # 处理长期有效的情况
-                start_date_str = validity_date_str.replace('-长期', '')
-                start_date = datetime.strptime(start_date_str, '%Y.%m.%d')
-                return start_date, None
-            else:
-                # 处理有明确结束日期的情况
-                date_parts = validity_date_str.split('-')
-                if len(date_parts) == 2:
-                    start_date = datetime.strptime(date_parts[0], '%Y.%m.%d')
-                    end_date = datetime.strptime(date_parts[1], '%Y.%m.%d')
-                    return start_date, end_date
-                else:
-                    return None, None
-        except ValueError:
-            return None, None
-    
-    def calculate_age_years(self, birth_date: datetime, request_date: datetime) -> float:
-        """
-        计算从出生日期到请求日期的年龄（保留1位小数）
-        
-        Args:
-            birth_date: 出生日期
-            request_date: 请求日期
-            
-        Returns:
-            年龄（年，保留1位小数）
-        """
-        if birth_date and request_date:
-            delta = request_date - birth_date
-            age_years = delta.days / 365.25  # 使用365.25考虑闰年
-            return round(age_years, 1)
-        return None
-    
-    def calculate_validity_days(self, validity_end_date: datetime, request_date: datetime) -> int:
-        """
-        计算从请求日期到证件过期日期的天数
-        
-        Args:
-            validity_end_date: 证件过期日期
-            request_date: 请求日期
-            
-        Returns:
-            剩余有效天数（负数表示已过期）
-        """
-        if validity_end_date and request_date:
-            delta = validity_end_date - request_date
-            return delta.days
-        elif validity_end_date is None:
-            # 长期有效，返回一个较大的数值
-            return 99999
-        return None
+
     
     def get_valid_values_map(self) -> Dict[str, set]:
         """
@@ -256,7 +164,7 @@ class DataProcessor:
         # 如果有请求ID，提取请求日期用于计算日期偏移
         request_date = None
         if request_id:
-            request_date = self.extract_request_date_from_id(request_id)
+            request_date = extract_request_date_from_id(request_id)
         
         for feature in feature_list:
             value = self.extract_nested_value(json_data, feature)
@@ -264,15 +172,15 @@ class DataProcessor:
             # 特殊处理日期字段
             if feature == 'idInfo.birthDate' and value and request_date:
                 # 计算年龄（年，保留1位小数）
-                birth_date = self.parse_birth_date(value)
+                birth_date = parse_birth_date(value)
                 if birth_date:
-                    value = self.calculate_age_years(birth_date, request_date)
+                    value = calculate_age_years(birth_date, request_date)
                     
             elif feature == 'idInfo.validityDate' and value and request_date:
                 # 计算证件剩余有效天数
-                start_date, end_date = self.parse_validity_date(value)
+                start_date, end_date = parse_validity_date(value)
                 if end_date is not None:
-                    value = self.calculate_validity_days(end_date, request_date)
+                    value = calculate_validity_days(end_date, request_date)
                 elif end_date is None and start_date:
                     # 长期有效
                     value = 99999
@@ -281,12 +189,7 @@ class DataProcessor:
                     
             elif feature == 'idInfo.nation' and value:
                 # 处理民族字段，去掉结尾多余的"族"
-                value_str = str(value).strip()
-                if value_str.endswith('族') and value_str != '族':
-                    # 去掉结尾的"族"字，但保留本身就是"族"的情况
-                    value = value_str[:-1]
-                else:
-                    value = value_str
+                value = process_nation_field(value)
                     
             # 处理特殊情况：如果是列表，抛出异常
             elif isinstance(value, list):
@@ -368,23 +271,34 @@ class DataProcessor:
         
         return partner_counts
     
-    def analyze_features(self, feature_list: List[str], sample_size: int = 10000) -> Dict[str, Any]:
+    def analyze_features(self, feature_list: List[str], feature_types: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         分析特征的分布情况
         
         Args:
             feature_list: 要分析的特征列表
+            feature_types: 特征类型列表，可选值为 'numeric' 或 'categorical'，与feature_list长度相同
             sample_size: 用于分析的样本大小
             
         Returns:
             特征分析结果
         """
+        # 验证feature_types参数
+        if feature_types is not None:
+            if len(feature_types) != len(feature_list):
+                raise ValueError(f"feature_types长度({len(feature_types)})必须与feature_list长度({len(feature_list)})相同")
+            
+            valid_types = {'numeric', 'categorical'}
+            invalid_types = set(feature_types) - valid_types
+            if invalid_types:
+                raise ValueError(f"无效的特征类型: {invalid_types}，只支持: {valid_types}")
+        
         df = pd.read_csv(self.data_file)
         
         analysis_results = {}
         
         # 分析每个特征
-        for feature in feature_list:
+        for i, feature in enumerate(feature_list):
             print(f"分析特征: {feature}")
             
             feature_values = []
@@ -414,34 +328,68 @@ class DataProcessor:
             unique_count = len(value_counts)
             
             # 判断数据类型
-            numeric_values = []
-            for v in feature_values:
+            specified_type = feature_types[i] if feature_types else None
+            
+            if specified_type == 'numeric':
+                # 手动指定为数值型
                 try:
-                    numeric_values.append(float(v))
+                    numeric_values = [float(v) for v in feature_values]
+                    analysis_results[feature] = {
+                        'type': 'numeric',
+                        'count': total_count,
+                        'unique_count': unique_count,
+                        'min': min(numeric_values),
+                        'max': max(numeric_values),
+                        'mean': sum(numeric_values) / len(numeric_values),
+                        'top_values': dict(value_counts.most_common(10))
+                    }
                 except (ValueError, TypeError):
-                    break
-            
-            is_numeric = len(numeric_values) == len(feature_values)
-            
-            if is_numeric and unique_count > 10:
-                # 数值型特征
-                analysis_results[feature] = {
-                    'type': 'numeric',
-                    'count': total_count,
-                    'unique_count': unique_count,
-                    'min': min(numeric_values),
-                    'max': max(numeric_values),
-                    'mean': sum(numeric_values) / len(numeric_values),
-                    'top_values': dict(value_counts.most_common(10))
-                }
-            else:
-                # 分类型特征
+                    # 如果无法转换为数值，则作为分类型处理
+                    print(f"警告: {feature} 指定为numeric但包含非数值数据，将作为categorical处理")
+                    analysis_results[feature] = {
+                        'type': 'categorical',
+                        'count': total_count,
+                        'unique_count': unique_count,
+                        'values': dict(value_counts.most_common(20))
+                    }
+            elif specified_type == 'categorical':
+                # 手动指定为分类型
                 analysis_results[feature] = {
                     'type': 'categorical',
                     'count': total_count,
                     'unique_count': unique_count,
-                    'values': dict(value_counts.most_common(20))  # 只显示前20个最常见的值
+                    'values': dict(value_counts.most_common(20))
                 }
+            else:
+                # 自动判断数据类型
+                numeric_values = []
+                for v in feature_values:
+                    try:
+                        numeric_values.append(float(v))
+                    except (ValueError, TypeError):
+                        break
+                
+                is_numeric = len(numeric_values) == len(feature_values)
+                
+                if is_numeric and unique_count > 10:
+                    # 数值型特征
+                    analysis_results[feature] = {
+                        'type': 'numeric',
+                        'count': total_count,
+                        'unique_count': unique_count,
+                        'min': min(numeric_values),
+                        'max': max(numeric_values),
+                        'mean': sum(numeric_values) / len(numeric_values),
+                        'top_values': dict(value_counts.most_common(10))
+                    }
+                else:
+                    # 分类型特征
+                    analysis_results[feature] = {
+                        'type': 'categorical',
+                        'count': total_count,
+                        'unique_count': unique_count,
+                        'values': dict(value_counts.most_common(20))  # 只显示前20个最常见的值
+                    }
         
         # 分析结果标签
         print("分析结果标签...")
@@ -509,7 +457,7 @@ def main():
         'degree',
         'idInfo.birthDate',
         'idInfo.gender',
-        'idInfo.identityType',
+        # 'idInfo.identityType',
         'idInfo.nation',
         'idInfo.validityDate',
         'income',
@@ -523,9 +471,36 @@ def main():
         'term',
     ]
     
-    print("使用的特征列表:")
-    for i, feature in enumerate(feature_list, 1):
-        print(f"{i}. {feature}")
+    # 手动指定特征类型 - 某些数字字段实际是分类属性
+    feature_types = [
+        'numeric',      # amount - 数值型
+        'categorical',  # bankCardInfo.bankCode - 虽然是数字但是分类属性
+        'categorical',  # bankCardInfo.cardType - 分类型
+        'categorical',  # city - 分类型
+        'categorical',  # companyInfo.companyName - 分类型
+        'categorical',  # companyInfo.industry - 分类型
+        'categorical',  # companyInfo.occupation - 虽然是数字但是分类属性
+        'categorical',  # customerSource - 分类型
+        'categorical',  # degree - 分类型
+        'numeric',      # idInfo.birthDate - 转换后为年龄，数值型
+        'categorical',  # idInfo.gender - 分类型
+        # 'categorical',  # idInfo.identityType - 分类型
+        'categorical',  # idInfo.nation - 分类型
+        'numeric',      # idInfo.validityDate - 转换后为剩余天数，数值型
+        'categorical',  # income - 分类型
+        'categorical',  # jobFunctions - 分类型
+        'categorical',  # linkmanList.0.relationship - 分类型
+        'categorical',  # linkmanList.1.relationship - 分类型
+        'categorical',  # maritalStatus - 虽然是数字但是分类属性
+        'categorical',  # province - 分类型
+        'categorical',  # purpose - 分类型
+        'categorical',  # resideFunctions - 分类型
+        'numeric',      # term - 数值型
+    ]
+    
+    print("使用的特征列表及类型:")
+    for i, (feature, ftype) in enumerate(zip(feature_list, feature_types), 1):
+        print(f"{i:2d}. {feature:<30} ({ftype})")
     
     # 处理数据并按合作方生成CSV文件
     print("\n开始数据处理...")
@@ -537,9 +512,9 @@ def main():
     for partner, count in sorted(partner_counts.items(), key=lambda x: x[1], reverse=True):
         print(f"{partner}: {count} 条记录")
     
-    # 进行特征分析
-    print("\n开始特征分析...")
-    analysis_results = processor.analyze_features(feature_list)
+    # 进行特征分析（使用指定的特征类型）
+    print("\n开始特征分析（使用指定类型）...")
+    analysis_results = processor.analyze_features(feature_list, feature_types)
     
     # 打印分析报告
     processor.print_analysis_report(analysis_results)
