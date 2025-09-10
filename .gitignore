@@ -1,3 +1,4 @@
 data
 partner_csv
 processed_data
+__pycache__

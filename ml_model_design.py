@@ -18,7 +18,6 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder, MultiLabelBinarizer
 from sklearn.metrics import classification_report, fbeta_score, hamming_loss, accuracy_score, make_scorer, precision_recall_curve
 from imblearn.over_sampling import SMOTE, ADASYN
-from imblearn.under_sampling import RandomUnderSampler, EditedNearestNeighbours
 from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.utils.class_weight import compute_class_weight
 import joblib
@@ -187,7 +186,7 @@ class LoanDistributionModel:
                 processed_df = processed_df.drop(feature, axis=1)
         
         # 5. 处理数值特征的缺失值
-        numerical_features = ['amount', 'idInfo.birthDate', 'idInfo.validityDate', 'term']
+        numerical_features = ['amount', 'idInfo.birthDate', 'idInfo.validityDate', 'pictureInfo.0.faceScore', 'term']
         for feature in numerical_features:
             if feature in processed_df.columns:
                 processed_df[feature] = pd.to_numeric(processed_df[feature], errors='coerce')
@@ -265,7 +264,6 @@ class LoanDistributionModel:
             strategy: 处理不平衡的策略
                 - "class_weight": 使用类别权重
                 - "smote": 使用SMOTE过采样
-                - "undersampling": 使用欠采样
                 - "combine": 使用SMOTE+Tomek组合方法
                 - "threshold": 调整分类阈值
         """
@@ -301,8 +299,6 @@ class LoanDistributionModel:
                 model, cv_results = self._train_with_class_weight(X_partner, y_partner, partner)
             elif strategy == "smote":
                 model, cv_results = self._train_with_smote(X_partner, y_partner, partner)
-            elif strategy == "undersampling":
-                model, cv_results = self._train_with_undersampling(X_partner, y_partner, partner)
             elif strategy == "combine":
                 model, cv_results = self._train_with_combine_sampling(X_partner, y_partner, partner)
             elif strategy == "threshold":
@@ -360,7 +356,7 @@ class LoanDistributionModel:
             
             # 分层交叉验证，每折内部使用SMOTE
             skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': [], 'precision': []}
             
             for train_idx, val_idx in skf.split(X, y):
                 X_train_fold, X_val_fold = X[train_idx], X[val_idx]
@@ -384,14 +380,18 @@ class LoanDistributionModel:
                 y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
                 y_pred = (y_pred_proba > 0.5).astype(int)
                 
-                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score, precision_score
                 cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
                 cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
                 cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
                 cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+                cv_scores['precision'].append(precision_score(y_val_fold, y_pred))
             
             # 计算平均性能
             cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+            # 统一AUC键名
+            if 'test_auc' in cv_results:
+                cv_results['test_roc_auc'] = cv_results.pop('test_auc')
             
             # 在全量数据上应用SMOTE并训练最终模型
             X_resampled, y_resampled = smote.fit_resample(X, y)
@@ -413,80 +413,7 @@ class LoanDistributionModel:
             print(f"  SMOTE失败: {e}, 回退到类别权重方法")
             return self._train_with_class_weight(X, y, partner)
     
-    def _train_with_undersampling(self, X: np.ndarray, y: np.ndarray, partner: str):
-        """使用欠采样处理不平衡"""
-        print(f"  策略: 随机欠采样")
-        
-        # 检查多数类是否有足够样本进行欠采样
-        pos_count = np.sum(y)
-        neg_count = len(y) - pos_count
-        
-        if neg_count < pos_count * 2:
-            print(f"  负类样本不足以进行欠采样，回退到类别权重方法")
-            return self._train_with_class_weight(X, y, partner)
-        
-        try:
-            # 设置采样策略：负类采样到正类的2倍
-            sampling_strategy = {0: min(pos_count * 2, neg_count), 1: pos_count}
-            
-            undersampler = RandomUnderSampler(
-                sampling_strategy=sampling_strategy,
-                random_state=42
-            )
-            
-            # 分层交叉验证
-            skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
-            
-            for train_idx, val_idx in skf.split(X, y):
-                X_train_fold, X_val_fold = X[train_idx], X[val_idx]
-                y_train_fold, y_val_fold = y[train_idx], y[val_idx]
-                
-                # 在训练集上应用欠采样
-                X_train_resampled, y_train_resampled = undersampler.fit_resample(X_train_fold, y_train_fold)
-                
-                # 训练模型
-                model_fold = RandomForestClassifier(
-                    n_estimators=100,
-                    max_depth=10,
-                    min_samples_split=5,
-                    min_samples_leaf=2,
-                    random_state=42,
-                    n_jobs=-1
-                )
-                model_fold.fit(X_train_resampled, y_train_resampled)
-                
-                # 在验证集上评估
-                y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
-                y_pred = (y_pred_proba > 0.5).astype(int)
-                
-                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
-                cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
-                cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
-                cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
-                cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
-            
-            cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
-            
-            # 在全量数据上应用欠采样并训练最终模型
-            X_resampled, y_resampled = undersampler.fit_resample(X, y)
-            print(f"  欠采样后: 原始 {len(y)} -> 平衡 {len(y_resampled)} 样本")
-            
-            model = RandomForestClassifier(
-                n_estimators=100,
-                max_depth=10,
-                min_samples_split=5,
-                min_samples_leaf=2,
-                random_state=42,
-                n_jobs=-1
-            )
-            model.fit(X_resampled, y_resampled)
-            
-            return model, cv_results
-            
-        except Exception as e:
-            print(f"  欠采样失败: {e}, 回退到类别权重方法")
-            return self._train_with_class_weight(X, y, partner)
+
     
     def _train_with_combine_sampling(self, X: np.ndarray, y: np.ndarray, partner: str):
         """使用SMOTE+Tomek组合采样处理不平衡"""
@@ -505,7 +432,7 @@ class LoanDistributionModel:
             
             # 交叉验证
             skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': [], 'precision': []}
             
             for train_idx, val_idx in skf.split(X, y):
                 X_train_fold, X_val_fold = X[train_idx], X[val_idx]
@@ -526,13 +453,17 @@ class LoanDistributionModel:
                 y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
                 y_pred = (y_pred_proba > 0.5).astype(int)
                 
-                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score, precision_score
                 cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
                 cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
                 cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
                 cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+                cv_scores['precision'].append(precision_score(y_val_fold, y_pred))
             
             cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+            # 统一AUC键名
+            if 'test_auc' in cv_results:
+                cv_results['test_roc_auc'] = cv_results.pop('test_auc')
             
             # 训练最终模型
             X_resampled, y_resampled = smote_tomek.fit_resample(X, y)
@@ -572,7 +503,7 @@ class LoanDistributionModel:
         best_threshold = 0.5
         best_f1 = 0
         
-        cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+        cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': [], 'precision': []}
         
         for train_idx, val_idx in skf.split(X, y):
             X_train_fold, X_val_fold = X[train_idx], X[val_idx]
@@ -607,11 +538,12 @@ class LoanDistributionModel:
             # 使用最优阈值进行预测
             y_pred = (y_pred_proba >= fold_best_threshold).astype(int)
             
-            from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+            from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score, precision_score
             cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
             cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
             cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
             cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+            cv_scores['precision'].append(precision_score(y_val_fold, y_pred))
             
             if fold_best_f1 > best_f1:
                 best_f1 = fold_best_f1
@@ -620,6 +552,9 @@ class LoanDistributionModel:
         print(f"  最优阈值: {best_threshold:.3f}")
         
         cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+        # 统一AUC键名
+        if 'test_auc' in cv_results:
+            cv_results['test_roc_auc'] = cv_results.pop('test_auc')
         
         # 训练最终模型
         model.fit(X, y)
@@ -636,6 +571,7 @@ class LoanDistributionModel:
             'accuracy': 'accuracy', 
             'recall': 'recall',
             'f1': 'f1',
+            'precision': 'precision',
         }
         
         cv_results = cross_validate(
@@ -651,6 +587,7 @@ class LoanDistributionModel:
         auc_key = 'test_roc_auc' if 'test_roc_auc' in cv_results else 'test_auc'
         print(f"    AUC: {cv_results[auc_key].mean():.3f} (±{cv_results[auc_key].std():.3f})")
         print(f"    准确率: {cv_results['test_accuracy'].mean():.3f} (±{cv_results['test_accuracy'].std():.3f})")
+        print(f"    查准率: {cv_results['test_precision'].mean():.3f} (±{cv_results['test_precision'].std():.3f})")
         print(f"    召回率: {cv_results['test_recall'].mean():.3f} (±{cv_results['test_recall'].std():.3f})")
         print(f"    F1分数: {cv_results['test_f1'].mean():.3f} (±{cv_results['test_f1'].std():.3f})")
     
@@ -668,7 +605,6 @@ class LoanDistributionModel:
             "baseline",
             "class_weight", 
             "smote",
-            "undersampling",
             "combine",
             "threshold"
         ]
@@ -742,26 +678,45 @@ class LoanDistributionModel:
             for strategy, results in all_results.items():
                 if partner in results:
                     cv_result = results[partner]
-                    # 使用F1分数作为主要评估指标
+                    # 获取所有评估指标的均值和标准差
                     avg_f1 = cv_result['test_f1'].mean() if 'test_f1' in cv_result else 0
-                    avg_auc = cv_result['test_auc'].mean() if 'test_auc' in cv_result else cv_result['test_roc_auc'].mean()
+                    std_f1 = cv_result['test_f1'].std() if 'test_f1' in cv_result else 0
+                    
+                    if 'test_auc' in cv_result:
+                        avg_auc = cv_result['test_auc'].mean()
+                        std_auc = cv_result['test_auc'].std()
+                    else:
+                        avg_auc = cv_result['test_roc_auc'].mean()
+                        std_auc = cv_result['test_roc_auc'].std()
+                    
                     avg_recall = cv_result['test_recall'].mean()
+                    std_recall = cv_result['test_recall'].std()
+                    
+                    avg_precision = cv_result['test_precision'].mean() if 'test_precision' in cv_result else 0
+                    std_precision = cv_result['test_precision'].std() if 'test_precision' in cv_result else 0
+                    
+                    avg_accuracy = cv_result['test_accuracy'].mean() if 'test_accuracy' in cv_result else 0
+                    std_accuracy = cv_result['test_accuracy'].std() if 'test_accuracy' in cv_result else 0
                     
                     partner_results[strategy] = {
-                        'f1': avg_f1,
-                        'auc': avg_auc, 
-                        'recall': avg_recall
+                        'f1': avg_f1, 'f1_std': std_f1,
+                        'auc': avg_auc, 'auc_std': std_auc,
+                        'recall': avg_recall, 'recall_std': std_recall,
+                        'precision': avg_precision, 'precision_std': std_precision,
+                        'accuracy': avg_accuracy, 'accuracy_std': std_accuracy
                     }
             
             if partner_results:
                 print(f"\n{partner}:")
-                # 按F1分数排序
+                # 按照F1, AUC, Recall, Precision, ACC的优先级排序
                 sorted_strategies = sorted(partner_results.items(), 
-                                         key=lambda x: x[1]['f1'], reverse=True)
+                                         key=lambda x: (x[1]['f1'], x[1]['auc'], x[1]['recall'], 
+                                                       x[1]['precision'], x[1]['accuracy']), 
+                                         reverse=True)
                 
                 for i, (strategy, metrics) in enumerate(sorted_strategies):
                     status = "🏆 最佳" if i == 0 else f"  #{i+1}"
-                    print(f"  {status} {strategy:15} F1: {metrics['f1']:.3f}  AUC: {metrics['auc']:.3f}  召回率: {metrics['recall']:.3f}")
+                    print(f"  {status} {strategy:15} F1: {metrics['f1']:.3f} (±{metrics['f1_std']:.3f})  AUC: {metrics['auc']:.3f} (±{metrics['auc_std']:.3f})  查准率: {metrics['precision']:.3f} (±{metrics['precision_std']:.3f})  召回率: {metrics['recall']:.3f} (±{metrics['recall_std']:.3f})  准确率: {metrics['accuracy']:.3f} (±{metrics['accuracy_std']:.3f})")
     
     def train_models(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray]):
         """
@@ -866,16 +821,7 @@ def main():
     
     # 4. 比较不同的不平衡处理策略
     comparison_results = model.compare_imbalance_strategies(X, Y_dict)
-    
-    print(f"\n{'='*80}")
-    print("推荐策略总结:")
-    print(f"{'='*80}")
-    print("基于以上比较结果，推荐使用以下策略：")
-    print("1. 对于通过率极低的合作方（<2%）: class_weight 或 threshold 策略")
-    print("2. 对于通过率较低的合作方（2-10%）: smote 或 combine 策略") 
-    print("3. 对于通过率中等的合作方（10-30%）: class_weight 策略")
-    print("4. 建议优先关注召回率和F1分数，而非准确率")
-    print("5. 可以根据业务需求调整评估指标的权重")
+
 
 def demo_single_strategy():
     """
