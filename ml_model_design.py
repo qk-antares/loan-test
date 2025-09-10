@@ -12,11 +12,15 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import cross_validate, train_test_split, cross_val_score
+from sklearn.model_selection import cross_validate, train_test_split, cross_val_score, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder, MultiLabelBinarizer
-from sklearn.metrics import classification_report, fbeta_score, hamming_loss, accuracy_score, make_scorer
+from sklearn.metrics import classification_report, fbeta_score, hamming_loss, accuracy_score, make_scorer, precision_recall_curve
+from imblearn.over_sampling import SMOTE, ADASYN
+from imblearn.under_sampling import RandomUnderSampler, EditedNearestNeighbours
+from imblearn.combine import SMOTETomek, SMOTEENN
+from sklearn.utils.class_weight import compute_class_weight
 import joblib
 import os
 import re
@@ -250,54 +254,520 @@ class LoanDistributionModel:
         
         return X, Y_dict
     
-    def train_models(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray]):
+    def train_models_with_imbalance_handling(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray], 
+                                           strategy: str = "class_weight"):
         """
-        训练模型 - 修正版：避免数据泄露
+        训练模型 - 处理类别不平衡问题
         
         Args:
             X: 特征矩阵
             Y_dict: 每个合作方的标签字典
+            strategy: 处理不平衡的策略
+                - "class_weight": 使用类别权重
+                - "smote": 使用SMOTE过采样
+                - "undersampling": 使用欠采样
+                - "combine": 使用SMOTE+Tomek组合方法
+                - "threshold": 调整分类阈值
         """
-        print("开始训练模型...")
+        print(f"开始训练模型 - 使用 {strategy} 策略处理类别不平衡...")
+        
+        strategies_results = {}
         
         # 为每个合作方训练单独的分类器
         for partner in self.partners:
-            print(f"训练 {partner} 模型...")
+            print(f"\n训练 {partner} 模型...")
             
             partner_data = Y_dict[partner]
             X_partner = X[partner_data['X_indices']]
             y_partner = partner_data['labels']
             
-            # 检查数据量是否足够
+            # 检查数据量和类别分布
             if len(y_partner) < 10:
-                print(f"  {partner} 数据量太少 ({len(y_partner)} 样本), 跳过训练")
+                print(f"  数据量太少 ({len(y_partner)} 样本), 跳过训练")
                 continue
             
-            # 使用随机森林分类器
+            pos_count = np.sum(y_partner)
+            neg_count = len(y_partner) - pos_count
+            pos_rate = pos_count / len(y_partner)
+            
+            print(f"  数据分布: 正类 {pos_count}, 负类 {neg_count}, 正类率 {pos_rate:.3f}")
+            
+            if pos_count < 5:
+                print(f"  正类样本太少 ({pos_count} 个), 跳过训练")
+                continue
+            
+            # 根据策略选择不同的处理方法
+            if strategy == "class_weight":
+                model, cv_results = self._train_with_class_weight(X_partner, y_partner, partner)
+            elif strategy == "smote":
+                model, cv_results = self._train_with_smote(X_partner, y_partner, partner)
+            elif strategy == "undersampling":
+                model, cv_results = self._train_with_undersampling(X_partner, y_partner, partner)
+            elif strategy == "combine":
+                model, cv_results = self._train_with_combine_sampling(X_partner, y_partner, partner)
+            elif strategy == "threshold":
+                model, cv_results = self._train_with_threshold_tuning(X_partner, y_partner, partner)
+            else:
+                model, cv_results = self._train_baseline(X_partner, y_partner, partner)
+            
+            if model is not None:
+                self.models[partner] = model
+                strategies_results[partner] = cv_results
+        
+        return strategies_results
+    
+    def _train_with_class_weight(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """使用类别权重处理不平衡"""
+        print(f"  策略: 类别权重平衡")
+        
+        # 计算类别权重
+        class_weights = compute_class_weight('balanced', classes=np.unique(y), y=y)
+        class_weight_dict = {0: class_weights[0], 1: class_weights[1]}
+        
+        print(f"  类别权重: {class_weight_dict}")
+        
+        model = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=10,
+            min_samples_split=min(5, len(y) // 10),
+            min_samples_leaf=2,
+            class_weight=class_weight_dict,  # 关键：使用类别权重
+            random_state=42,
+            n_jobs=-1
+        )
+        
+        # 交叉验证
+        cv_results = self._evaluate_model(model, X, y)
+        
+        # 在全量数据上训练最终模型
+        model.fit(X, y)
+        
+        return model, cv_results
+    
+    def _train_with_smote(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """使用SMOTE过采样处理不平衡"""
+        print(f"  策略: SMOTE过采样")
+        
+        try:
+            # 检查是否有足够的少数类样本进行SMOTE
+            min_samples = min(np.bincount(y.astype(int)))
+            if min_samples < 2:
+                print(f"  少数类样本太少，回退到类别权重方法")
+                return self._train_with_class_weight(X, y, partner)
+            
+            # 使用SMOTE进行过采样
+            smote = SMOTE(random_state=42, k_neighbors=min(5, min_samples-1))
+            
+            # 分层交叉验证，每折内部使用SMOTE
+            skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+            
+            for train_idx, val_idx in skf.split(X, y):
+                X_train_fold, X_val_fold = X[train_idx], X[val_idx]
+                y_train_fold, y_val_fold = y[train_idx], y[val_idx]
+                
+                # 在训练集上应用SMOTE
+                X_train_resampled, y_train_resampled = smote.fit_resample(X_train_fold, y_train_fold)
+                
+                # 训练模型
+                model_fold = RandomForestClassifier(
+                    n_estimators=100,
+                    max_depth=10,
+                    min_samples_split=5,
+                    min_samples_leaf=2,
+                    random_state=42,
+                    n_jobs=-1
+                )
+                model_fold.fit(X_train_resampled, y_train_resampled)
+                
+                # 在验证集上评估
+                y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
+                y_pred = (y_pred_proba > 0.5).astype(int)
+                
+                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+                cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
+                cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
+                cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
+                cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+            
+            # 计算平均性能
+            cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+            
+            # 在全量数据上应用SMOTE并训练最终模型
+            X_resampled, y_resampled = smote.fit_resample(X, y)
+            print(f"  SMOTE后: 原始 {len(y)} -> 平衡 {len(y_resampled)} 样本")
+            
             model = RandomForestClassifier(
                 n_estimators=100,
                 max_depth=10,
-                min_samples_split=min(5, len(y_partner) // 2),
-                min_samples_leaf=1,
+                min_samples_split=5,
+                min_samples_leaf=2,
                 random_state=42,
                 n_jobs=-1
             )
+            model.fit(X_resampled, y_resampled)
             
-            scoring = {
-                'roc_auc': 'roc_auc',
-                'accuracy': 'accuracy',
-                'recall': 'recall',
-                'f1': 'f1',
-            }
-
-            cv_results = cross_validate(
-                model, X_partner, y_partner, cv=5, scoring=scoring
+            return model, cv_results
+            
+        except Exception as e:
+            print(f"  SMOTE失败: {e}, 回退到类别权重方法")
+            return self._train_with_class_weight(X, y, partner)
+    
+    def _train_with_undersampling(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """使用欠采样处理不平衡"""
+        print(f"  策略: 随机欠采样")
+        
+        # 检查多数类是否有足够样本进行欠采样
+        pos_count = np.sum(y)
+        neg_count = len(y) - pos_count
+        
+        if neg_count < pos_count * 2:
+            print(f"  负类样本不足以进行欠采样，回退到类别权重方法")
+            return self._train_with_class_weight(X, y, partner)
+        
+        try:
+            # 设置采样策略：负类采样到正类的2倍
+            sampling_strategy = {0: min(pos_count * 2, neg_count), 1: pos_count}
+            
+            undersampler = RandomUnderSampler(
+                sampling_strategy=sampling_strategy,
+                random_state=42
             )
-
-            print(f"  {partner} 交叉验证 AUC: {cv_results['test_roc_auc'].mean():.3f}")
-            print(f"  {partner} 交叉验证 准确率: {cv_results['test_accuracy'].mean():.3f}")
-            print(f"  {partner} 交叉验证 召回率: {cv_results['test_recall'].mean():.3f}")
-            print(f"  {partner} 交叉验证 F1: {cv_results['test_f1'].mean():.3f}")
+            
+            # 分层交叉验证
+            skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+            
+            for train_idx, val_idx in skf.split(X, y):
+                X_train_fold, X_val_fold = X[train_idx], X[val_idx]
+                y_train_fold, y_val_fold = y[train_idx], y[val_idx]
+                
+                # 在训练集上应用欠采样
+                X_train_resampled, y_train_resampled = undersampler.fit_resample(X_train_fold, y_train_fold)
+                
+                # 训练模型
+                model_fold = RandomForestClassifier(
+                    n_estimators=100,
+                    max_depth=10,
+                    min_samples_split=5,
+                    min_samples_leaf=2,
+                    random_state=42,
+                    n_jobs=-1
+                )
+                model_fold.fit(X_train_resampled, y_train_resampled)
+                
+                # 在验证集上评估
+                y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
+                y_pred = (y_pred_proba > 0.5).astype(int)
+                
+                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+                cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
+                cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
+                cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
+                cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+            
+            cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+            
+            # 在全量数据上应用欠采样并训练最终模型
+            X_resampled, y_resampled = undersampler.fit_resample(X, y)
+            print(f"  欠采样后: 原始 {len(y)} -> 平衡 {len(y_resampled)} 样本")
+            
+            model = RandomForestClassifier(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42,
+                n_jobs=-1
+            )
+            model.fit(X_resampled, y_resampled)
+            
+            return model, cv_results
+            
+        except Exception as e:
+            print(f"  欠采样失败: {e}, 回退到类别权重方法")
+            return self._train_with_class_weight(X, y, partner)
+    
+    def _train_with_combine_sampling(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """使用SMOTE+Tomek组合采样处理不平衡"""
+        print(f"  策略: SMOTE+Tomek组合采样")
+        
+        try:
+            min_samples = min(np.bincount(y.astype(int)))
+            if min_samples < 2:
+                return self._train_with_class_weight(X, y, partner)
+            
+            # 使用SMOTETomek组合方法
+            smote_tomek = SMOTETomek(
+                smote=SMOTE(random_state=42, k_neighbors=min(5, min_samples-1)),
+                random_state=42
+            )
+            
+            # 交叉验证
+            skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+            cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+            
+            for train_idx, val_idx in skf.split(X, y):
+                X_train_fold, X_val_fold = X[train_idx], X[val_idx]
+                y_train_fold, y_val_fold = y[train_idx], y[val_idx]
+                
+                X_train_resampled, y_train_resampled = smote_tomek.fit_resample(X_train_fold, y_train_fold)
+                
+                model_fold = RandomForestClassifier(
+                    n_estimators=100,
+                    max_depth=10,
+                    min_samples_split=5,
+                    min_samples_leaf=2,
+                    random_state=42,
+                    n_jobs=-1
+                )
+                model_fold.fit(X_train_resampled, y_train_resampled)
+                
+                y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
+                y_pred = (y_pred_proba > 0.5).astype(int)
+                
+                from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+                cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
+                cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
+                cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
+                cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+            
+            cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+            
+            # 训练最终模型
+            X_resampled, y_resampled = smote_tomek.fit_resample(X, y)
+            print(f"  组合采样后: 原始 {len(y)} -> 处理后 {len(y_resampled)} 样本")
+            
+            model = RandomForestClassifier(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42,
+                n_jobs=-1
+            )
+            model.fit(X_resampled, y_resampled)
+            
+            return model, cv_results
+            
+        except Exception as e:
+            print(f"  组合采样失败: {e}, 回退到类别权重方法")
+            return self._train_with_class_weight(X, y, partner)
+    
+    def _train_with_threshold_tuning(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """通过调整分类阈值处理不平衡"""
+        print(f"  策略: 分类阈值调优")
+        
+        model = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=10,
+            min_samples_split=min(5, len(y) // 10),
+            min_samples_leaf=2,
+            random_state=42,
+            n_jobs=-1
+        )
+        
+        # 交叉验证寻找最优阈值
+        skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+        best_threshold = 0.5
+        best_f1 = 0
+        
+        cv_scores = {'auc': [], 'accuracy': [], 'recall': [], 'f1': []}
+        
+        for train_idx, val_idx in skf.split(X, y):
+            X_train_fold, X_val_fold = X[train_idx], X[val_idx]
+            y_train_fold, y_val_fold = y[train_idx], y[val_idx]
+            
+            model_fold = RandomForestClassifier(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42,
+                n_jobs=-1
+            )
+            model_fold.fit(X_train_fold, y_train_fold)
+            
+            # 获取预测概率
+            y_pred_proba = model_fold.predict_proba(X_val_fold)[:, 1]
+            
+            # 寻找最优阈值
+            thresholds = np.arange(0.1, 0.9, 0.05)
+            fold_best_f1 = 0
+            fold_best_threshold = 0.5
+            
+            for threshold in thresholds:
+                y_pred_thresh = (y_pred_proba >= threshold).astype(int)
+                from sklearn.metrics import f1_score
+                f1 = f1_score(y_val_fold, y_pred_thresh)
+                if f1 > fold_best_f1:
+                    fold_best_f1 = f1
+                    fold_best_threshold = threshold
+            
+            # 使用最优阈值进行预测
+            y_pred = (y_pred_proba >= fold_best_threshold).astype(int)
+            
+            from sklearn.metrics import roc_auc_score, accuracy_score, recall_score, f1_score
+            cv_scores['auc'].append(roc_auc_score(y_val_fold, y_pred_proba))
+            cv_scores['accuracy'].append(accuracy_score(y_val_fold, y_pred))
+            cv_scores['recall'].append(recall_score(y_val_fold, y_pred))
+            cv_scores['f1'].append(f1_score(y_val_fold, y_pred))
+            
+            if fold_best_f1 > best_f1:
+                best_f1 = fold_best_f1
+                best_threshold = fold_best_threshold
+        
+        print(f"  最优阈值: {best_threshold:.3f}")
+        
+        cv_results = {f'test_{k}': np.array(v) for k, v in cv_scores.items()}
+        
+        # 训练最终模型
+        model.fit(X, y)
+        
+        # 保存最优阈值供预测使用
+        setattr(model, 'optimal_threshold', best_threshold)
+        
+        return model, cv_results
+    
+    def _evaluate_model(self, model, X: np.ndarray, y: np.ndarray):
+        """评估模型性能"""
+        scoring = {
+            'roc_auc': 'roc_auc',
+            'accuracy': 'accuracy', 
+            'recall': 'recall',
+            'f1': 'f1',
+        }
+        
+        cv_results = cross_validate(
+            model, X, y, scoring=scoring, 
+            cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+        )
+        
+        return cv_results
+    
+    def _print_results(self, partner: str, cv_results: dict):
+        """打印结果"""
+        print(f"  {partner} 交叉验证结果:")
+        auc_key = 'test_roc_auc' if 'test_roc_auc' in cv_results else 'test_auc'
+        print(f"    AUC: {cv_results[auc_key].mean():.3f} (±{cv_results[auc_key].std():.3f})")
+        print(f"    准确率: {cv_results['test_accuracy'].mean():.3f} (±{cv_results['test_accuracy'].std():.3f})")
+        print(f"    召回率: {cv_results['test_recall'].mean():.3f} (±{cv_results['test_recall'].std():.3f})")
+        print(f"    F1分数: {cv_results['test_f1'].mean():.3f} (±{cv_results['test_f1'].std():.3f})")
+    
+    def compare_imbalance_strategies(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray]):
+        """
+        比较不同的不平衡处理策略
+        
+        Args:
+            X: 特征矩阵
+            Y_dict: 每个合作方的标签字典
+        """
+        print("=== 比较不同的类别不平衡处理策略 ===\n")
+        
+        strategies = [
+            "baseline",
+            "class_weight", 
+            "smote",
+            "undersampling",
+            "combine",
+            "threshold"
+        ]
+        
+        all_results = {}
+        
+        for strategy in strategies:
+            print(f"\n{'='*50}")
+            print(f"策略: {strategy.upper()}")
+            print(f"{'='*50}")
+            
+            if strategy == "baseline":
+                results = self._train_baseline_all(X, Y_dict)
+            else:
+                results = self.train_models_with_imbalance_handling(X, Y_dict, strategy)
+            
+            all_results[strategy] = results
+        
+        # 总结比较结果
+        self._summarize_strategy_comparison(all_results)
+        
+        return all_results
+    
+    def _train_baseline_all(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray]):
+        """训练基线模型（原始方法）"""
+        results = {}
+        
+        for partner in self.partners:
+            partner_data = Y_dict[partner]
+            X_partner = X[partner_data['X_indices']]
+            y_partner = partner_data['labels']
+            
+            if len(y_partner) < 10 or np.sum(y_partner) < 5:
+                continue
+            
+            model, cv_results = self._train_baseline(X_partner, y_partner, partner)
+            if model is not None:
+                results[partner] = cv_results
+        
+        return results
+    
+    def _train_baseline(self, X: np.ndarray, y: np.ndarray, partner: str):
+        """基线模型训练"""
+        print(f"  策略: 基线模型（无特殊处理）")
+        
+        model = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=10,
+            min_samples_split=min(5, len(y) // 10),
+            min_samples_leaf=2,
+            random_state=42,
+            n_jobs=-1
+        )
+        
+        cv_results = self._evaluate_model(model, X, y)
+        self._print_results(partner, cv_results)
+        
+        model.fit(X, y)
+        return model, cv_results
+    
+    def _summarize_strategy_comparison(self, all_results: Dict[str, Dict]):
+        """总结策略比较结果"""
+        print(f"\n{'='*80}")
+        print("策略比较总结")
+        print(f"{'='*80}")
+        
+        # 为每个合作方找到最佳策略
+        for partner in self.partners:
+            partner_results = {}
+            
+            for strategy, results in all_results.items():
+                if partner in results:
+                    cv_result = results[partner]
+                    # 使用F1分数作为主要评估指标
+                    avg_f1 = cv_result['test_f1'].mean() if 'test_f1' in cv_result else 0
+                    avg_auc = cv_result['test_auc'].mean() if 'test_auc' in cv_result else cv_result['test_roc_auc'].mean()
+                    avg_recall = cv_result['test_recall'].mean()
+                    
+                    partner_results[strategy] = {
+                        'f1': avg_f1,
+                        'auc': avg_auc, 
+                        'recall': avg_recall
+                    }
+            
+            if partner_results:
+                print(f"\n{partner}:")
+                # 按F1分数排序
+                sorted_strategies = sorted(partner_results.items(), 
+                                         key=lambda x: x[1]['f1'], reverse=True)
+                
+                for i, (strategy, metrics) in enumerate(sorted_strategies):
+                    status = "🏆 最佳" if i == 0 else f"  #{i+1}"
+                    print(f"  {status} {strategy:15} F1: {metrics['f1']:.3f}  AUC: {metrics['auc']:.3f}  召回率: {metrics['recall']:.3f}")
+    
+    def train_models(self, X: np.ndarray, Y_dict: Dict[str, np.ndarray]):
+        """
+        保持原有接口，默认使用类别权重策略
+        """
+        return self.train_models_with_imbalance_handling(X, Y_dict, strategy="class_weight")
         
     
     def predict_partner_probabilities(self, X: np.ndarray) -> Dict[str, np.ndarray]:
@@ -382,7 +852,7 @@ def main():
     """
     主函数：演示完整的训练和预测流程
     """
-    print("=== 贷款分发智能决策模型 ===")
+    print("=== 贷款分发智能决策模型 - 处理类别不平衡 ===")
     
     # 1. 初始化模型
     model = LoanDistributionModel()
@@ -394,8 +864,43 @@ def main():
     # 3. 准备训练数据
     X, Y_dict = model.prepare_training_data(processed_data)
     
-    # 4. 训练模型
-    model.train_models(X, Y_dict)
+    # 4. 比较不同的不平衡处理策略
+    comparison_results = model.compare_imbalance_strategies(X, Y_dict)
+    
+    print(f"\n{'='*80}")
+    print("推荐策略总结:")
+    print(f"{'='*80}")
+    print("基于以上比较结果，推荐使用以下策略：")
+    print("1. 对于通过率极低的合作方（<2%）: class_weight 或 threshold 策略")
+    print("2. 对于通过率较低的合作方（2-10%）: smote 或 combine 策略") 
+    print("3. 对于通过率中等的合作方（10-30%）: class_weight 策略")
+    print("4. 建议优先关注召回率和F1分数，而非准确率")
+    print("5. 可以根据业务需求调整评估指标的权重")
+
+def demo_single_strategy():
+    """
+    演示单一策略的详细效果
+    """
+    print("=== 单一策略演示：类别权重方法 ===")
+    
+    model = LoanDistributionModel()
+    combined_data = model.load_and_combine_data()
+    processed_data = model.preprocess_features(combined_data)
+    X, Y_dict = model.prepare_training_data(processed_data)
+
+    # 使用SMOTE策略训练
+    results = model.train_models_with_imbalance_handling(X, Y_dict, strategy="smote")
+    
+    # 打印详细结果
+    for partner, cv_result in results.items():
+        print(f"\n{partner} 详细结果:")
+        auc_key = 'test_roc_auc' if 'test_roc_auc' in cv_result else 'test_auc'
+        print(f"  AUC: {cv_result[auc_key].mean():.3f} ± {cv_result[auc_key].std():.3f}")
+        print(f"  准确率: {cv_result['test_accuracy'].mean():.3f} ± {cv_result['test_accuracy'].std():.3f}")
+        print(f"  召回率: {cv_result['test_recall'].mean():.3f} ± {cv_result['test_recall'].std():.3f}")
+        print(f"  F1分数: {cv_result['test_f1'].mean():.3f} ± {cv_result['test_f1'].std():.3f}")
+    
+    return model
 
 if __name__ == "__main__":
     main()

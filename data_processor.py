@@ -509,6 +509,7 @@ def main():
         'linkmanList.0.relationship',
         'linkmanList.1.relationship',
         'maritalStatus',
+        'pictureInfo.0.faceScore',
         'province',
         'purpose',
         'resideFunctions',
@@ -536,6 +537,7 @@ def main():
         'categorical',  # linkmanList.0.relationship - 分类型
         'categorical',  # linkmanList.1.relationship - 分类型
         'categorical',  # maritalStatus - 虽然是数字但是分类属性
+        'numeric',      # pictureInfo.0.faceScore - 数值型
         'categorical',  # province - 分类型
         'categorical',  # purpose - 分类型
         'categorical',  # resideFunctions - 分类型
