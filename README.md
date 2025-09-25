@@ -1,9 +1,16 @@
 ```bash
-├── data	# 把20250903.csv文件放到这里(csv格式好处理)
+├── backup	# 初版的数据预处理/模型代码
+|
+├── data	# 把原始数据放到这里
+├── data_analysis   # 把数据分析部分的代码放到这里
+├── data_process   # 把数据处理部分的代码放到这里
+|
 ├── log # 记录了一些实验结果
-├── utils   # 一些工具函数
-├── data_processor.py   # 数据处理脚本，选取特定的列并进行预处理
-├── ml_model_design.py   # 基于随机森林的导流模型实验
-├── ml_model_design_onehot.py   # 基于随机森林的导流模型实验（使用独热编码）
-└── ml_model_design_mlp.py   # 基于随机森林的导流模型实验（使用MLP对特征进行降维）
+|
+├── model	# 把模型实验部分的代码放到这里
+|
+├── test # 把预处理后的测试数据放到这里
+├── train # 把预处理后的训练数据放到这里
+|
+└── utils   # 一些工具函数
 ```
