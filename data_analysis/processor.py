@@ -665,15 +665,6 @@ class LoanDataProcessor:
 
 
 def main():
-    """主函数"""
-    import argparse
-
-    parser = argparse.ArgumentParser(description='贷款数据预处理脚本')
-    parser.add_argument('--data_dir', default='data', help='原始数据目录 (默认: data)')
-    parser.add_argument('--output_dir', default='.', help='输出目录 (默认: 当前目录)')
-    parser.add_argument('--mode', choices=['train', 'test'], default='train', 
-                       help='处理模式: train(训练模式)或test(测试模式) (默认: train)')
-
 
     # 创建处理器
     processor = LoanDataProcessor(output_dir='data', mode='train')
