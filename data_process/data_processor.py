@@ -212,11 +212,10 @@ class LoanDataProcessor:
             'purpose',
             'resideFunctions',
             'term',
-            # 'deviceInfo.gpsLatitude',
-            # 'deviceInfo.gpsLongitude', # 等价于deviceInfo.applyPos
+            'deviceInfo.gpsLatitude',
+            'deviceInfo.gpsLongitude',
             'deviceInfo.osType',
             'deviceInfo.isCrossDomain',
-            'deviceInfo.applyPos',
             'label'
         ]
         
@@ -397,8 +396,8 @@ class LoanDataProcessor:
         
         return {
             'request_id': parts[0].strip(),
-            'error_code': parts[1].strip(),
-            'partner_code': parts[2].strip(),
+            'channel_code': parts[1].strip(),  # 使用channelCode而不是channelName
+            'channel_name': parts[2].strip(),  # channelName作为备用
             'json_data': parts[3].strip(),
             'result_status': parts[4].strip()
         }
@@ -597,11 +596,11 @@ class LoanDataProcessor:
             # 添加结果标签（成功=1，失败=0）
             features['label'] = 1 if parsed_data['result_status'] == '成功' else 0
             
-            # 添加合作方信息
-            features['partner_code'] = parsed_data['partner_code']
+            # 添加合作方信息（使用channelCode而不是channelName）
+            features['partner_code'] = parsed_data['channel_code']
             
             self.stats['total_processed'] += 1
-            partner = parsed_data['partner_code']
+            partner = parsed_data['channel_code']
             self.stats['partner_counts'][partner] = self.stats['partner_counts'].get(partner, 0) + 1
             
             return features
