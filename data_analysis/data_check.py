@@ -6,13 +6,14 @@ from typing import Dict, Any
 
 class DataCheck:
         
-    def __init__(self, data_file: str, original_data_file: str):
+    def __init__(self, data_file: str, original_data_file: str, unused_data_file: str):
         """
         初始化数据分析器
         
         """
-        self.data_file = data_file 
-        self.original_data_file = original_data_file
+        self.data_file = data_file #实际使用的数据
+        self.original_data_file = original_data_file #原始数据，包含被过滤掉的特征
+        self.unused_data_file = unused_data_file #使用了applyPos字段的版本
         self.masked_features = [] # 脱敏特征
         self.filtered_features = [] # 预处理被过滤掉的特征
         self.invalid_data = [] # 未通过筛选条件的数据
@@ -66,7 +67,7 @@ class DataCheck:
     def data_process(self, df: pd.DataFrame):
         process_data = []
         for idx, row in df.iterrows():    
-            message = row['报文']
+            message = row['content']
             json_data = self.parse_json_message(message)
             data = self.flatten_dict(json_data)
             process_data.append(data)
@@ -147,10 +148,10 @@ class DataCheck:
         process_data = self.data_process(df)
         masked_features_set = set()
         if process_data:
-            first_item = process_data[0]
-            for key, value in first_item.items():
-                if value is not None and self.is_masked_value(value):
-                    masked_features_set.add(key)
+            for item in process_data[:100]:# 只扫描前100条记录，通常足够覆盖所有脱敏特征
+                for key, value in item.items():
+                    if value is not None and self.is_masked_value(value):
+                        masked_features_set.add(key)
             cleaned_masked_features = self.clean_feature_name(masked_features_set)
             self.masked_features = list(cleaned_masked_features)
             print(f"脱敏特征(共{len(self.masked_features)}个) :{self.masked_features}")
@@ -164,23 +165,32 @@ class DataCheck:
         print("=" * 60)
         print("过滤特征分析报告")
         print("=" * 60)
+        
+        # 处理多条记录来获取完整特征集
         process_data = self.data_process(df_original)
         
-        filtered_features_set = set()
+        if not process_data:
+            print("错误: 无法处理原始数据")
+            return
         
+        # 方法1: 扫描多条记录收集所有可能的特征
+        all_features_set = set()
+        for i, record in enumerate(process_data):
+            if i >= 100:  # 扫描100条记录，通常足够覆盖所有特征
+                break
+            all_features_set.update(record.keys())
         
-        if process_data:
-            # 只需要第一个记录就能获取所有特征名
-            original_features = set(process_data[0].keys())
-            cleaned_original_features = self.clean_feature_name(original_features)
-            print(f"原始特征(共{len(cleaned_original_features)}个): {list(cleaned_original_features)}")
-            print()
-            filtered_features = set(df_filtered.columns)
-            cleaned_filtered_features = self.clean_feature_name(filtered_features)
-            filtered_features_set = cleaned_original_features - cleaned_filtered_features
-            added_features = cleaned_filtered_features - cleaned_original_features
-            maintained_features = cleaned_original_features & cleaned_filtered_features
+        cleaned_original_features = self.clean_feature_name(all_features_set)
+        print(f"原始特征(共{len(cleaned_original_features)}个): {sorted(list(cleaned_original_features))}")
+        print()
         
+        filtered_features = set(df_filtered.columns)
+        cleaned_filtered_features = self.clean_feature_name(filtered_features)
+        
+        filtered_features_set = cleaned_original_features - cleaned_filtered_features
+        added_features = cleaned_filtered_features - cleaned_original_features
+        maintained_features = cleaned_original_features & cleaned_filtered_features
+            
         # 更新实例变量  
         self.filtered_features = list(filtered_features_set)
         print(f"保留特征(共{len(maintained_features)}个): {list(maintained_features)}")
@@ -323,7 +333,7 @@ class DataCheck:
     部分筛选条件
     """
     def get_rules_by_partner_code(self, partner_code:str):
-        if partner_code == "安稳借":
+        if partner_code == "AWJ_CODE":
             return {
                 'city': {'鸡西市', '黑河市', '鹤岗市', '大兴安岭地区', '防城港市', '河池市', 
                         '桂林市', '来宾市', '梧州市', '安阳市', '周口市', '许昌市', '鹤壁市', 
@@ -335,50 +345,50 @@ class DataCheck:
                                     '记者', '贷款', '金融', '执行局', '监狱', '交通警察', '派出所', 
                                     '刑事侦查部门', '交警', '刑侦'}
             }
-        elif partner_code == "恒小花":
+        elif partner_code == "HXH_CODE":
             return {}
-        elif partner_code == "你我贷":
+        elif partner_code == "NWD_CODE":
             return {
                 'province': {'新疆', '西藏', '香港', '澳门', '台湾'}
             }
-        elif partner_code == "乐享借":
+        elif partner_code == "LXJ_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏'},
                 'city': {'自贡', '北海', '南宁', '宁德', '莆田', '泉州', '盐城'}
             }
-        elif partner_code == "信用飞":
+        elif partner_code == "XYF_CODE":
             return {}
-        elif partner_code == "融360":
+        elif partner_code == "RONG_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏'},
                 'company_keywords': {'学校', '公检法'}
             }
-        elif partner_code == "小赢":
+        elif partner_code == "XY_CODE":
             return {}
-        elif partner_code == "金瀛分期":
+        elif partner_code == "JY_CODE":
             return {
                 'province': {'新疆', '西藏'},
                 'city': {'萍乡市'}
             }
-        elif partner_code == "富龙小贷":
+        elif partner_code == "FLXD_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏'}
             }
-        elif partner_code == "分期易":
+        elif partner_code == "FQY_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏'}
             }
-        elif partner_code == "百顺宝":
+        elif partner_code == "BBS_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏', '内蒙古'},
                 'city': {'宁德市', '安溪县', '电白县', '余干县', '双峰县', '儋州市', '龙岩市', '宾阳县', '丰宁县'}
             }
-        elif partner_code == "天美贷PLUS":
+        elif partner_code == "TMDP_CODE":
             return {
                 'province': {'香港', '澳门', '台湾', '新疆', '西藏', '青海'},
              
             }
-        elif partner_code == "惠花":
+        elif partner_code == "HH_CODE":
             return {
                 'province': {'新疆', '西藏'},
         
@@ -464,7 +474,7 @@ class DataCheck:
             date = row.get('idInfo.validityDate')
             degree = row.get('degree')
 
-            if partner_code == "安稳借":
+            if partner_code == "AWJ_CODE":
                 if age < 22 or age > 49:
                     self.invalid_data.append(row)
                     continue
@@ -494,12 +504,12 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
                     
-            elif partner_code == "恒小花":
+            elif partner_code == "HXH_CODE":
                 if age < 22 or age > 55 or not date:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "你我贷":
+            elif partner_code == "NWD_CODE":
                 if age < 23 or age > 55 or not date or date < 7:
                     self.invalid_data.append(row)
                     continue
@@ -522,7 +532,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
                     
-            elif partner_code == "乐享借":
+            elif partner_code == "LXJ_CODE":
                 if age < 23 or age > 50 or not date or date < 30:
                     self.invalid_data.append(row)
                     continue
@@ -545,12 +555,12 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "信用飞":
+            elif partner_code == "XYF_CODE":
                 if age < 23 or age > 55 or not date or date < 90 or degree == 'JUNIOR':
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "融360":
+            elif partner_code == "RONG_CODE":
                 if age < 22 or age > 50:
                     self.invalid_data.append(row)
                     continue
@@ -578,12 +588,12 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "小赢":
+            elif partner_code == "XY_CODE":
                 if not date or date < 30:
                     self.invalid_data.append(row)
                     continue
                     
-            elif partner_code == "金瀛分期":
+            elif partner_code == "JY_CODE":
                 if age < 23 or age > 50:
                     self.invalid_data.append(row)
                     continue
@@ -606,7 +616,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "富龙小贷":
+            elif partner_code == "FLXD_CODE":
                 if age < 22 or age > 55 or not date or date < 90:
                     self.invalid_data.append(row)
                     continue
@@ -629,7 +639,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "分期易":
+            elif partner_code == "FQY_CODE":
                 if age < 22 or age >= 55:
                     self.invalid_data.append(row)
                     continue
@@ -652,7 +662,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "百顺宝":
+            elif partner_code == "BBS_CODE":
                 if age < 22 or age > 55 or not date or date < 30:
                     self.invalid_data.append(row)
                     continue
@@ -675,7 +685,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
 
-            elif partner_code == "天美贷PLUS":
+            elif partner_code == "TMDP_CODE":
                 if age < 22 or age > 48:
                     self.invalid_data.append(row)
                     continue
@@ -698,7 +708,7 @@ class DataCheck:
                     self.invalid_data.append(row)
                     continue
                         
-            elif partner_code == "惠花":
+            elif partner_code == "HH_CODE":
                 if age < 22:
                     self.invalid_data.append(row)
                     continue
@@ -731,8 +741,9 @@ class DataCheck:
     合作方分布以及特征分析报告
     """
     def analyze_data(self):
-        df_filtered = pd.read_csv(self.data_file)
-        df_original = pd.read_csv(self.original_data_file)
+        df_filtered = pd.read_csv(self.data_file) # 实际使用的数据
+        df_original = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 原始数据，包含被过滤掉的特征
+        df_unused = pd.read_csv(self.unused_data_file) # 未使用的数据版本，使用了applyPos字段
 
         # 脱敏特征统计
         self.analyze_masked_features(df_original)
@@ -747,13 +758,13 @@ class DataCheck:
         self.print_detailed_analysis(df_filtered)
 
         # 数据符合验证
-        self.data_compliance_check(df_filtered,'both')
+        self.data_compliance_check(df_unused,'both')
 
 
 
 
 def main():
-    check = DataCheck('test/all_data.csv', 'data/20250903.csv')
+    check = DataCheck('train/all_data.csv', 'data/2025-09-20.txt', 'data/all_data.csv')
     check.analyze_data()
 
 if __name__ == "__main__":
