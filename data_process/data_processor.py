@@ -671,9 +671,24 @@ class LoanDataProcessor:
         all_data = []
         total_records_processed = 0  # 记录总处理数量
         
-        # 逐行处理
-        with open(input_file, 'r', encoding='utf-8') as f:
-            for line_num, line in enumerate(f, 1):
+        # 逐行处理 - 尝试多种编码
+        encodings_to_try = ['utf-8', 'gbk', 'gb2312', 'utf-8-sig']
+        file_content = None
+
+        for encoding in encodings_to_try:
+            try:
+                with open(input_file, 'r', encoding=encoding) as f:
+                    file_content = f.readlines()
+                print(f"成功使用 {encoding} 编码读取文件: {input_file}")
+                break
+            except UnicodeDecodeError:
+                continue
+
+        if file_content is None:
+            print(f"无法读取文件 {input_file}，尝试了所有常见编码")
+            return
+
+        for line_num, line in enumerate(file_content, 1):
                 if line_num % 1000 == 0:
                     print(f"已处理 {line_num} 行")
                 
