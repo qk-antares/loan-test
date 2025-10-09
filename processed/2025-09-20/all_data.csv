@@ -1,4 +1,3 @@
-partner_code,amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 RONG_CODE,100000,,景德镇市,秀艺时尚造型,,,APP,2,30.1,M,汉,6329,4,01,FATHER,MOTHER,2,70,江西省,CONSUME,01,,23.520043,116.76645,ANDROID,,0
 RONG_CODE,100000,105,湛江市,广东一明电气工程有限公司,,,XCX,2,33.1,M,汉,6264,4,01,FATHER,FRIENDS,1,91.88793,广东省,CONSUME,01,,21.68336394026475,110.0764572967144,IOS,,0
 RONG_CODE,100000,,文山壮族苗族自治州,惠州中记家具有限公司,,,APP,3,28.2,M,壮,6622,2,01,SIBLING,COLLEAGUE,2,89.495,云南省,CONSUME,01,,23.17013,113.95774,ANDROID,,0

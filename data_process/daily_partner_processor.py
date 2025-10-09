@@ -10,7 +10,7 @@ import os
 import pandas as pd
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 from data_process.data_utils import *
 
@@ -75,96 +75,6 @@ class LoanDataProcessor:
             'field_clean_stats': defaultdict(int)
         }
 
-    def load_processed_files_record(self) -> Dict[str, Dict[str, Any]]:
-        """
-        加载已处理文件记录
-
-        Returns:
-            已处理文件记录字典 {file_path: {size: int, mtime: float, records_count: int}}
-        """
-        if os.path.exists(self.processed_files_record):
-            try:
-                with open(self.processed_files_record, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"警告: 无法读取处理记录文件: {e}")
-                return {}
-        return {}
-
-    def save_processed_files_record(self, processed_files: Dict[str, Dict[str, Any]]):
-        """
-        保存已处理文件记录
-
-        Args:
-            processed_files: 处理记录字典
-        """
-        try:
-            with open(self.processed_files_record, 'w', encoding='utf-8') as f:
-                json.dump(processed_files, f, ensure_ascii=False, indent=2)
-        except IOError as e:
-            print(f"警告: 无法保存处理记录文件: {e}")
-
-    def get_file_info(self, file_path: str) -> Dict[str, Any]:
-        """
-        获取文件信息
-
-        Args:
-            file_path: 文件路径
-
-        Returns:
-            文件信息字典 {size: int, mtime: float}
-        """
-        try:
-            stat = os.stat(file_path)
-            return {
-                'size': stat.st_size,
-                'mtime': stat.st_mtime
-            }
-        except OSError:
-            return {'size': 0, 'mtime': 0}
-
-    def is_file_processed(self, file_path: str, processed_files: Dict[str, Dict[str, Any]]) -> bool:
-        """
-        检查文件是否已经处理过
-
-        Args:
-            file_path: 文件路径
-            processed_files: 已处理文件记录
-
-        Returns:
-            是否已处理
-        """
-        if file_path not in processed_files:
-            return False
-
-        current_info = self.get_file_info(file_path)
-        recorded_info = processed_files[file_path]
-
-        # 比较文件大小和修改时间
-        return (current_info['size'] == recorded_info.get('size', 0) and
-                abs(current_info['mtime'] - recorded_info.get('mtime', 0)) < 1)
-
-    def get_unprocessed_files(self, txt_files: List[str]) -> List[str]:
-        """
-        筛选出未处理的文件
-
-        Args:
-            txt_files: 所有txt文件列表
-
-        Returns:
-            未处理的文件列表
-        """
-        processed_files = self.load_processed_files_record()
-        unprocessed_files = []
-
-        for file_path in txt_files:
-            if not self.is_file_processed(file_path, processed_files):
-                unprocessed_files.append(file_path)
-            else:
-                print(f"跳过已处理文件: {os.path.basename(file_path)}")
-
-        return unprocessed_files
-    
     def parse_line(self, line: str) -> Optional[Dict[str, str]]:
         """
         解析单行数据
@@ -402,13 +312,40 @@ class LoanDataProcessor:
             self.stats['feature_extract_errors'] += 1
             return None
     
-    def append_to_csv(self, filepath: str, data: List[Dict[str, Any]], include_partner_code: bool = True):
+    def write_batch_data(self, all_data: List[Dict[str, Any]], partner_data: Dict[str, List[Dict[str, Any]]], file_date: str = None):
         """
-        追加数据到CSV文件
+        批量写入数据，包含数据清洗
+
+        Args:
+            all_data: 所有数据
+            partner_data: 按合作方分组的数据
+            file_date: 文件日期（格式：YYYY-MM-DD）
+        """
+        # 数据清洗
+        print("开始数据清洗...")
+        cleaned_all_data = self.clean_data(all_data.copy())
+
+        # 写入总表
+        all_csv_path = os.path.join(self.output_dir, file_date, 'all_data.csv')
+        self.write_to_csv(all_csv_path, cleaned_all_data, include_partner_code=True)
+
+        # 写入分表
+        for partner, records in partner_data.items():
+            print(f"处理 {partner} 数据...")
+
+            # 不用重复清理
+            # cleaned_records = self.clean_data(records.copy())
+
+            partner_csv_path = os.path.join(self.output_dir, file_date, f'{partner}.csv')
+            self.write_to_csv(partner_csv_path, records, include_partner_code=False)
+
+    def write_to_csv(self, filepath: str, data: List[Dict[str, Any]], include_partner_code: bool = True):
+        """
+        覆盖写入数据到CSV文件
         
         Args:
             filepath: CSV文件路径
-            data: 要追加的数据列表
+            data: 要写入的数据列表
             include_partner_code: 是否包含partner_code列（总表需要，分表不需要）
         """
         if not data:
@@ -432,18 +369,15 @@ class LoanDataProcessor:
         
         df = pd.DataFrame(df_data, columns=columns)
         
-        # 检查文件是否存在
-        file_exists = os.path.exists(filepath)
-        
         # 自动创建父目录
         parent_dir = os.path.dirname(filepath)
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)
 
         # 写入文件
-        df.to_csv(filepath, mode='a', header=not file_exists, index=False, encoding='utf-8')
+        df.to_csv(filepath, mode='w', header=True, index=False, encoding='utf-8')
         
-        print(f"已追加 {len(data)} 条记录到 {filepath}")
+        print(f"已写入 {len(data)} 条记录到 {filepath}")
     
     def process_file(self, input_file: str):
         """
@@ -451,7 +385,6 @@ class LoanDataProcessor:
 
         Args:
             input_file: 输入文件路径
-            destination: 目标位置 ('train', 'test', 或 None 使用默认行为)
         """
         print(f"开始处理文件: {input_file}")
 
@@ -462,7 +395,6 @@ class LoanDataProcessor:
         # 按合作方分组的数据
         partner_data = defaultdict(list)
         all_data = []
-        total_records_processed = 0  # 记录总处理数量
         
         file_content = None
         file_date = extract_date_from_filename(input_file)
@@ -474,76 +406,27 @@ class LoanDataProcessor:
             print(f"无法读取文件 {input_file}")
             return
 
-        for line_num, line in enumerate(file_content, 1):
-                if line_num % 1000 == 0:
-                    print(f"已处理 {line_num} 行")
-                
-                record = self.process_single_record(line)
-                if record:
-                    partner = record['partner_code']
+        # 跳过第一行表头，处理所有数据行
+        for line_num, line in enumerate(file_content[1:], 2):
+            if line_num % 1000 == 0:
+                print(f"已处理 {line_num} 行")
+            
+            record = self.process_single_record(line)
+            if record:
+                partner = record['partner_code']
 
-                    # 添加到总数据
-                    all_data.append(record)
-                    total_records_processed += 1
+                # 添加到总数据
+                all_data.append(record)
 
-                    # 按合作方分组
-                    partner_data[partner].append(record)
+                # 按合作方分组
+                partner_data[partner].append(record)
 
-                    # 批量写入（每1000条）
-                    if len(all_data) >= 1000:
-                        self._write_batch_data(all_data, partner_data, file_date)
-                        all_data = []
-                        partner_data = defaultdict(list)
-
-        # 写入剩余数据
+        # 一次性写入所有数据
         if all_data:
-            self._write_batch_data(all_data, partner_data, file_date)
+            print(f"\n共处理 {len(all_data)} 条记录，开始写入文件...")
+            self.write_batch_data(all_data, partner_data, file_date)
 
-        # 记录文件已处理
-        self._record_processed_file(input_file, total_records_processed)
-
-        print(f"文件 {input_file} 处理完成")
-
-    def _record_processed_file(self, file_path: str, records_count: int):
-        """
-        记录文件已处理
-
-        Args:
-            file_path: 文件路径
-            records_count: 处理的记录数
-        """
-        processed_files = self.load_processed_files_record()
-        file_info = self.get_file_info(file_path)
-        file_info['records_count'] = records_count
-        file_info['processed_time'] = datetime.now().isoformat()
-
-        processed_files[file_path] = file_info
-        self.save_processed_files_record(processed_files)
-
-    def _write_batch_data(self, all_data: List[Dict[str, Any]], partner_data: Dict[str, List[Dict[str, Any]]], file_date: str = None):
-        """
-        批量写入数据，包含数据清洗
-
-        Args:
-            all_data: 所有数据
-            partner_data: 按合作方分组的数据
-            file_date: 文件日期（格式：YYYY-MM-DD）
-        """
-        # 数据清洗
-        print("开始数据清洗...")
-        cleaned_all_data = self.clean_data(all_data.copy())
-
-        # 写入总表
-        all_csv_path = os.path.join(self.output_dir, file_date, 'all_data.csv')
-        self.append_to_csv(all_csv_path, cleaned_all_data, include_partner_code=True)
-
-        # 写入分表
-        for partner, records in partner_data.items():
-            print(f"处理 {partner} 数据...")
-            cleaned_records = self.clean_data(records.copy())
-
-            partner_csv_path = os.path.join(self.output_dir, file_date, f'{partner}.csv')
-            self.append_to_csv(partner_csv_path, cleaned_records, include_partner_code=False)
+        print(f"文件 {input_file} 处理完成，共 {len(all_data)} 条记录")
     
     def process_multiple_files(self, input_files: List[str]):
         """
@@ -594,136 +477,6 @@ class LoanDataProcessor:
         # 处理目录下所有的文件
         self.process_multiple_files(txt_files)
     
-    def analyze_processed_data(self) -> Dict[str, Any]:
-        """
-        分析处理后的数据特征分布，参考原代码逻辑
-        
-        Returns:
-            特征分析结果
-        """
-        all_csv_path = os.path.join(self.output_dir, 'all_data.csv')
-        if not os.path.exists(all_csv_path):
-            print("错误: 总表文件不存在，无法进行特征分析")
-            return {}
-        
-        print("开始特征分析...")
-        df = pd.read_csv(all_csv_path)
-        
-        analysis_results = {}
-        
-        # 分析每个特征
-        for feature in self.feature_columns:
-            if feature not in df.columns:
-                continue
-                
-            print(f"分析特征: {feature}")
-            
-            # 获取非空值
-            feature_series = df[feature].dropna()
-            
-            if len(feature_series) == 0:
-                analysis_results[feature] = {
-                    'type': 'empty',
-                    'count': 0,
-                    'unique_count': 0,
-                    'values': {}
-                }
-                continue
-            
-            # 转换为字符串进行统计
-            feature_values = feature_series.astype(str).tolist()
-            
-            # 统计分析
-            value_counts = Counter(feature_values)
-            total_count = len(feature_values)
-            unique_count = len(value_counts)
-            null_count = df[feature].isnull().sum()
-            
-            # 判断数据类型
-            numeric_values = []
-            for v in feature_values:
-                if v != 'nan':
-                    try:
-                        numeric_values.append(float(v))
-                    except (ValueError, TypeError):
-                        break
-            
-            is_numeric = len(numeric_values) == len([v for v in feature_values if v != 'nan'])
-            
-            if is_numeric and unique_count > 10 and len(numeric_values) > 0:
-                # 数值型特征
-                analysis_results[feature] = {
-                    'type': 'numeric',
-                    'count': total_count,
-                    'null_count': null_count,
-                    'unique_count': unique_count,
-                    'min': min(numeric_values),
-                    'max': max(numeric_values),
-                    'mean': sum(numeric_values) / len(numeric_values),
-                    'top_values': dict(value_counts.most_common(10))
-                }
-            else:
-                # 分类型特征
-                analysis_results[feature] = {
-                    'type': 'categorical',
-                    'count': total_count,
-                    'null_count': null_count,
-                    'unique_count': unique_count,
-                    'values': dict(value_counts.most_common(20))
-                }
-        
-        # 分析结果标签
-        if 'label' in df.columns:
-            label_series = df['label'].dropna()
-            result_counts = Counter(label_series.astype(int))
-            
-            analysis_results['label'] = {
-                'type': 'categorical',
-                'count': len(label_series),
-                'null_count': df['label'].isnull().sum(),
-                'unique_count': len(result_counts),
-                'values': dict(result_counts)
-            }
-        
-        return analysis_results
-    
-    def print_analysis_report(self, analysis_results: Dict[str, Any]):
-        """
-        打印分析报告，参考原代码
-        
-        Args:
-            analysis_results: 分析结果
-        """
-        print("\n" + "="*60)
-        print("特征分析报告 (基于清理后的数据)")
-        print("="*60)
-        
-        for feature, stats in analysis_results.items():
-            print(f"\n特征: {feature}")
-            print("-" * 40)
-            print(f"数据类型: {stats['type']}")
-            print(f"有效数据数: {stats['count']}")
-            if 'null_count' in stats:
-                print(f"空值数量: {stats['null_count']}")
-            print(f"唯一值数量: {stats['unique_count']}")
-            
-            if stats['type'] == 'numeric':
-                print(f"最小值: {stats['min']}")
-                print(f"最大值: {stats['max']}")
-                print(f"平均值: {stats['mean']:.2f}")
-                if 'top_values' in stats:
-                    print("最常见的值:")
-                    for value, count in stats['top_values'].items():
-                        print(f"  {value}: {count}")
-            elif stats['type'] == 'categorical':
-                if 'values' in stats:
-                    print("值分布:")
-                    for value, count in stats['values'].items():
-                        percentage = (count / stats['count']) * 100
-                        print(f"  {value}: {count} ({percentage:.1f}%)")
-            elif stats['type'] in ['empty', 'missing']:
-                print("注意: 该特征没有有效数据")
-    
     def print_statistics(self):
         """打印处理统计信息"""
         print("\n" + "="*60)
@@ -745,28 +498,6 @@ class LoanDataProcessor:
         print("-" * 40)
         for partner, count in sorted(self.stats['partner_counts'].items(), key=lambda x: x[1], reverse=True):
             print(f"{partner}: {count} 条记录")
-        
-        # 进行特征分析
-        analysis_results = self.analyze_processed_data()
-        if analysis_results:
-            self.print_analysis_report(analysis_results)
-            
-            # 保存特征分析结果（保存在data_process目录下）
-            script_dir = os.path.dirname(os.path.abspath(__file__))  # data_process目录
-            analysis_path = os.path.join(script_dir, 'feature_analysis.json')
-            with open(analysis_path, 'w', encoding='utf-8') as f:
-                # 转换为可JSON序列化的格式
-                serializable_results = {}
-                for feature, stats in analysis_results.items():
-                    serializable_results[feature] = {}
-                    for key, value in stats.items():
-                        if isinstance(value, (int, float, str, list, dict)):
-                            serializable_results[feature][key] = value
-                        else:
-                            serializable_results[feature][key] = str(value)
-                
-                json.dump(serializable_results, f, ensure_ascii=False, indent=2)
-            print(f"\n特征分析结果已保存到: {analysis_path}")
         
         # 保存统计报告（保存在data_process目录下）
         script_dir = os.path.dirname(os.path.abspath(__file__))  # data_process目录
@@ -795,17 +526,7 @@ class LoanDataProcessor:
         
         print(f"\n统计报告已保存到: {report_path}")
 
-
-    def add_force_reprocess_option(self):
-        """
-        添加强制重新处理选项（删除处理记录）
-        """
-        if os.path.exists(self.processed_files_record):
-            os.remove(self.processed_files_record)
-            print("已删除处理记录文件，将重新处理所有文件")
-
-
-def main():
+def process_all_data():
     """主函数"""
     processor = LoanDataProcessor()
 
@@ -818,18 +539,17 @@ def main():
     print("数据预处理完成！")
     print("="*60)
 
-    print("输出文件:")
-    print(f"  - 总表: {os.path.join(processor.output_dir, 'all_data.csv')}")
-    print(f"  - 分表: {processor.output_dir}/<合作方名称>.csv")
-    print(f"  - 处理报告: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processing_report.txt')}")
-    print(f"  - 特征分析: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'feature_analysis.json')}")
-    
-    print("\n说明:")
-    print("1. 总表包含所有合作方的数据")
-    print("2. 分表按合作方自动创建")
-    print("3. 支持增量处理，重复运行会追加数据")
-    print("4. 所有数据已完成清洗和验证")
+def process_single_file(file_date: str):
+    """处理单个文件的辅助函数"""
+    processor = LoanDataProcessor()
 
+    processor.process_file(f'data/{file_date}.txt')
+    
+    processor.print_statistics()
+
+    print("\n" + "="*60)
+    print("数据预处理完成！")
+    print("="*60)
 
 if __name__ == "__main__":
-    main()
+    process_single_file("2025-10-08")

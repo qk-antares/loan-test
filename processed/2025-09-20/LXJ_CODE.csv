@@ -1,4 +1,3 @@
-amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,西安市,汉中市迪赞优创设计装饰有限责任公司,E,24,APP,4,37.0,M,汉,6791,3,01,MATE,FATHER,1,70,陕西省,CONSUME,01,,34.52234902498754,109.47073513454878,ANDROID,,0
 100000,,黄石市,深圳市天道酬勤有限责任公司,Z,90,XCX,4,30.5,M,汉,6604,4,,FATHER,FRIENDS,2,82.757,湖北省,CONSUME,04,,22.745044759114585,113.90576768663195,ANDROID,false,0
 100000,,石家庄市,中铁十六局,E,24,XCX,2,30.1,M,汉,1053,3,,MATE,SIBLING,1,88.385,河北省,CONSUME,01,,7.106606,125.64967,ANDROID,,0
