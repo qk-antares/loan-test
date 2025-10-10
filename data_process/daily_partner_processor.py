@@ -1,0 +1,557 @@
+# -*- coding: utf-8 -*-
+"""
+数据预处理脚本
+用于处理以||为分隔符的贷款数据，输出CSV格式文件供机器学习使用
+基于参考代码的完整数据验证和清洗逻辑
+"""
+
+import json
+import os
+import pandas as pd
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+from collections import defaultdict
+
+from data_process.data_utils import *
+
+
+class LoanDataProcessor:
+    """贷款数据预处理器，完整版本"""
+    def __init__(self, output_dir: str = "processed"):
+        """
+        初始化数据处理器
+
+        Args:
+            output_dir: 输出目录
+        """
+        self.output_dir = output_dir
+
+        # 创建输出目录
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+        
+        # 目前暂定使用以下特征（注释的不使用）
+        self.feature_columns = [
+            'amount',
+            # 'bankCardInfo.bankName', # 直接使用下面的bankCode即可
+            'bankCardInfo.bankCode',
+            # 'bankCardInfo.cardType', # 所有样本都一样，无意义
+            'city',
+            'companyInfo.companyName',
+            'companyInfo.industry',
+            'companyInfo.occupation',
+            'customerSource',
+            'degree',
+            'idInfo.birthDate',
+            'idInfo.gender',
+            # 'idInfo.identityType', # 所有样本都一样，无意义
+            'idInfo.nation',
+            'idInfo.validityDate',
+            'income',
+            'jobFunctions',
+            'linkmanList.0.relationship',
+            'linkmanList.1.relationship',
+            'maritalStatus',
+            'pictureInfo.0.faceScore',
+            'province',
+            'purpose',
+            'resideFunctions',
+            'term',
+            'deviceInfo.gpsLatitude',
+            'deviceInfo.gpsLongitude',
+            'deviceInfo.osType',
+            'deviceInfo.isCrossDomain',
+            'label'
+        ]
+        
+        # 处理统计
+        self.stats = {
+            'total_processed': 0,
+            'json_parse_errors': 0,
+            'line_parse_errors': 0,
+            'feature_extract_errors': 0,
+            'partner_counts': {},
+            'cleaned_values_count': 0,
+            'field_clean_stats': defaultdict(int)
+        }
+
+    def parse_line(self, line: str) -> Optional[Dict[str, str]]:
+        """
+        解析单行数据
+        
+        Args:
+            line: 原始数据行
+            
+        Returns:
+            解析后的字典，包含id, error_code, partner_code, json_data, result_status
+        """
+        line = line.strip()
+        if not line:
+            return None
+        
+        # 按||分割
+        parts = line.split('||')
+        if len(parts) != 5:
+            print(f"警告: 数据格式不正确，应为5个字段，实际为{len(parts)}个字段")
+            self.stats['line_parse_errors'] += 1
+            return None
+        
+        return {
+            'request_id': parts[0].strip(),
+            'channel_code': parts[1].strip(),  # 使用channelCode而不是channelName
+            'channel_name': parts[2].strip(),  # channelName作为备用
+            'json_data': parts[3].strip(),
+            'result_status': parts[4].strip()
+        }
+    
+    def parse_json_message(self, json_str: str) -> Dict[str, Any]:
+        """
+        解析JSON格式的报文，参考原代码
+        
+        Args:
+            json_str: JSON字符串
+            
+        Returns:
+            解析后的字典
+        """
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            print(f"JSON解析错误: {e}")
+            self.stats['json_parse_errors'] += 1
+            return {}
+    
+    def extract_nested_value(self, data: Dict[str, Any], field_path: str) -> Any:
+        """
+        从嵌套字典中提取值，支持点号分隔的路径，参考原代码
+        
+        Args:
+            data: 数据字典
+            field_path: 字段路径，如 "bankCardInfo.bankCode"
+            
+        Returns:
+            提取到的值，如果不存在则返回None
+        """
+        if not field_path:
+            return None
+            
+        try:
+            keys = field_path.split('.')
+            value = data
+            
+            for key in keys:
+                if isinstance(value, dict) and key in value:
+                    value = value[key]
+                elif isinstance(value, list) and key.isdigit():
+                    # 处理列表索引
+                    index = int(key)
+                    if 0 <= index < len(value):
+                        value = value[index]
+                    else:
+                        return None
+                else:
+                    return None
+            
+            if value == '':
+                return None
+            return value
+        except (KeyError, IndexError, ValueError, TypeError):
+            return None
+    
+    def extract_features(self, json_data: Dict[str, Any], feature_list: List[str], request_id: str = None) -> Dict[str, Any]:
+        """
+        从JSON数据中提取指定的特征，参考原代码逻辑
+        
+        Args:
+            json_data: 解析后的JSON数据
+            feature_list: 要提取的特征列表
+            request_id: 请求ID，用于计算日期偏移
+            
+        Returns:
+            提取后的特征字典
+        """
+        extracted = {}
+        
+        # 如果有请求ID，提取请求日期用于计算日期偏移
+        request_date = None
+        if request_id:
+            request_date = extract_request_date_from_id(request_id)
+        
+        for feature in feature_list:
+            if feature == 'label':
+                # 跳过label字段，在外层处理
+                continue
+                
+            value = self.extract_nested_value(json_data, feature)
+
+            # 检查脱敏数据
+            try:
+                check_for_masked_data(value, feature)
+            except ValueError as e:
+                print(f"警告: {e}")
+                self.stats['feature_extract_errors'] += 1
+                continue
+
+            # 特殊处理日期字段
+            if feature == 'idInfo.birthDate' and value and request_date:
+                # 计算年龄（年，保留1位小数）
+                birth_date = parse_birth_date(value)
+                if birth_date:
+                    value = calculate_age_years(birth_date, request_date)
+                    
+            elif feature == 'idInfo.validityDate' and value and request_date:
+                # 计算证件剩余有效天数
+                start_date, end_date = parse_validity_date(value)
+                if end_date is not None:
+                    value = calculate_validity_days(end_date, request_date)
+                elif end_date is None and start_date:
+                    # 长期有效
+                    value = 99999
+                else:
+                    value = None
+                    
+            elif feature == 'idInfo.nation' and value:
+                # 处理民族字段，去掉结尾多余的"族"
+                value = process_nation_field(value)
+
+            elif feature == 'degree' and value:
+                # 学历编码：从低到高编码为1-6
+                value = encode_degree(value)
+
+            elif feature == 'income' and value:
+                # 收入等级编码：按收入等级编码为1-4
+                value = encode_income(value)
+
+            elif feature == 'bankCardInfo.bankName' and value:
+                # 处理银行名称异常：去掉多余的"中国"前缀
+                value = process_bank_name(value)
+
+            # 处理特殊情况：如果是列表，抛出异常
+            elif isinstance(value, list):
+                raise ValueError(f"无法处理列表类型的特征: {feature}")
+            
+            extracted[feature] = value
+        
+        return extracted
+    
+    def clean_data(self, data_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        数据清洗：将异常值直接设置为None，参考原代码逻辑
+        
+        Args:
+            data_list: 原始数据列表
+            
+        Returns:
+            清洗后的数据列表
+        """
+        if not data_list:
+            return data_list
+        
+        valid_values_map = get_valid_values_map()
+        cleaned_count = 0
+        field_clean_count = defaultdict(int)
+        
+        for record in data_list:
+            for field, valid_values in valid_values_map.items():
+                if field in record:
+                    value = record[field]
+                    if value is not None and str(value) not in valid_values:
+                        # 发现异常值，直接设置为None
+                        record[field] = None
+                        cleaned_count += 1
+                        field_clean_count[field] += 1
+                        self.stats['field_clean_stats'][field] += 1
+        
+        self.stats['cleaned_values_count'] += cleaned_count
+        
+        if cleaned_count > 0:
+            print(f"  清理了 {cleaned_count} 个异常值 (设置为None)")
+            for field, count in field_clean_count.items():
+                print(f"    {field}: {count} 个")
+        else:
+            print(f"  未发现异常值")
+        
+        return data_list
+    
+    def process_single_record(self, line: str) -> Optional[Dict[str, Any]]:
+        """
+        处理单条记录
+        
+        Args:
+            line: 单行数据
+            
+        Returns:
+            处理后的特征字典，包含partner_code
+        """
+        parsed_data = self.parse_line(line)
+        if not parsed_data:
+            return None
+        
+        json_data = self.parse_json_message(parsed_data['json_data'])
+        if not json_data:
+            return None
+        
+        try:
+            # 提取特征
+            features = self.extract_features(json_data, self.feature_columns, parsed_data['request_id'])
+            
+            # 添加结果标签（成功=1，失败=0）
+            features['label'] = 1 if parsed_data['result_status'] == '成功' else 0
+            
+            # 添加合作方信息（使用channelCode而不是channelName）
+            features['partner_code'] = parsed_data['channel_code']
+            
+            self.stats['total_processed'] += 1
+            partner = parsed_data['channel_code']
+            self.stats['partner_counts'][partner] = self.stats['partner_counts'].get(partner, 0) + 1
+            
+            return features
+            
+        except Exception as e:
+            print(f"特征提取错误: {e}")
+            self.stats['feature_extract_errors'] += 1
+            return None
+    
+    def write_batch_data(self, all_data: List[Dict[str, Any]], partner_data: Dict[str, List[Dict[str, Any]]], file_date: str = None):
+        """
+        批量写入数据，包含数据清洗
+
+        Args:
+            all_data: 所有数据
+            partner_data: 按合作方分组的数据
+            file_date: 文件日期（格式：YYYY-MM-DD）
+        """
+        # 数据清洗
+        print("开始数据清洗...")
+        cleaned_all_data = self.clean_data(all_data.copy())
+
+        # 写入总表
+        all_csv_path = os.path.join(self.output_dir, file_date, 'all_data.csv')
+        self.write_to_csv(all_csv_path, cleaned_all_data, include_partner_code=True)
+
+        # 写入分表
+        for partner, records in partner_data.items():
+            print(f"处理 {partner} 数据...")
+
+            # 不用重复清理
+            # cleaned_records = self.clean_data(records.copy())
+
+            partner_csv_path = os.path.join(self.output_dir, file_date, f'{partner}.csv')
+            self.write_to_csv(partner_csv_path, records, include_partner_code=False)
+
+    def write_to_csv(self, filepath: str, data: List[Dict[str, Any]], include_partner_code: bool = True):
+        """
+        覆盖写入数据到CSV文件
+        
+        Args:
+            filepath: CSV文件路径
+            data: 要写入的数据列表
+            include_partner_code: 是否包含partner_code列（总表需要，分表不需要）
+        """
+        if not data:
+            return
+        
+        # 准备列顺序
+        columns = self.feature_columns.copy()
+        if include_partner_code:
+            columns.insert(0, 'partner_code')
+        
+        # 准备数据
+        df_data = []
+        for record in data:
+            row = {}
+            for col in columns:
+                if col in record:
+                    row[col] = record[col]
+                else:
+                    row[col] = None
+            df_data.append(row)
+        
+        df = pd.DataFrame(df_data, columns=columns)
+        
+        # 自动创建父目录
+        parent_dir = os.path.dirname(filepath)
+        if parent_dir and not os.path.exists(parent_dir):
+            os.makedirs(parent_dir, exist_ok=True)
+
+        # 写入文件
+        df.to_csv(filepath, mode='w', header=True, index=False, encoding='utf-8')
+        
+        print(f"已写入 {len(data)} 条记录到 {filepath}")
+    
+    def process_file(self, input_file: str):
+        """
+        处理单个输入文件
+
+        Args:
+            input_file: 输入文件路径
+        """
+        print(f"开始处理文件: {input_file}")
+
+        if not os.path.exists(input_file):
+            print(f"错误: 文件不存在 {input_file}")
+            return
+
+        # 按合作方分组的数据
+        partner_data = defaultdict(list)
+        all_data = []
+        
+        file_content = None
+        file_date = extract_date_from_filename(input_file)
+
+        try:
+            with open(input_file, 'r', encoding='utf-8') as f:
+                file_content = f.readlines()
+        except UnicodeDecodeError:
+            print(f"无法读取文件 {input_file}")
+            return
+
+        # 跳过第一行表头，处理所有数据行
+        for line_num, line in enumerate(file_content[1:], 2):
+            if line_num % 1000 == 0:
+                print(f"已处理 {line_num} 行")
+            
+            record = self.process_single_record(line)
+            if record:
+                partner = record['partner_code']
+
+                # 添加到总数据
+                all_data.append(record)
+
+                # 按合作方分组
+                partner_data[partner].append(record)
+
+        # 一次性写入所有数据
+        if all_data:
+            print(f"\n共处理 {len(all_data)} 条记录，开始写入文件...")
+            self.write_batch_data(all_data, partner_data, file_date)
+
+        print(f"文件 {input_file} 处理完成，共 {len(all_data)} 条记录")
+    
+    def process_multiple_files(self, input_files: List[str]):
+        """
+        处理多个输入文件
+        
+        Args:
+            input_files: 输入文件路径列表
+        """
+        for input_file in input_files:
+            self.process_file(input_file)
+        
+        self.print_statistics()
+    
+    def process_data_directory(self, data_dir: str = "data"):
+        """
+        处理data目录下的所有txt文件
+        
+        Args:
+            data_dir: 数据目录
+        """
+        # 获取脚本所在目录的父目录（backup的上一级），然后找data目录
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)
+        data_path = os.path.join(parent_dir, data_dir)
+        
+        print(f"脚本所在目录: {script_dir}")
+        print(f"查找数据目录: {data_path}")
+        
+        if not os.path.exists(data_path):
+            print(f"错误: 数据目录不存在 {data_path}")
+            return
+        
+        # 查找所有txt文件
+        txt_files = []
+        for file in os.listdir(data_path):
+            if file.endswith('.txt'):
+                txt_files.append(os.path.join(data_path, file))
+        
+        if not txt_files:
+            print(f"警告: 在 {data_path} 目录下未找到任何txt文件")
+            print(f"目录内容: {os.listdir(data_path)}")
+            return
+        
+        print(f"找到 {len(txt_files)} 个txt文件:")
+        for f in txt_files:
+            print(f"  - {f}")
+
+        # 处理目录下所有的文件
+        self.process_multiple_files(txt_files)
+    
+    def print_statistics(self):
+        """打印处理统计信息"""
+        print("\n" + "="*60)
+        print("数据处理统计报告")
+        print("="*60)
+        print(f"总处理记录数: {self.stats['total_processed']}")
+        print(f"JSON解析错误数: {self.stats['json_parse_errors']}")
+        print(f"行格式错误数: {self.stats['line_parse_errors']}")
+        print(f"特征提取错误数: {self.stats['feature_extract_errors']}")
+        print(f"总清洗异常值数: {self.stats['cleaned_values_count']}")
+        
+        if self.stats['field_clean_stats']:
+            print("\n字段清洗统计:")
+            print("-" * 40)
+            for field, count in sorted(self.stats['field_clean_stats'].items(), key=lambda x: x[1], reverse=True):
+                print(f"{field}: {count} 个异常值")
+        
+        print("\n各合作方数据统计:")
+        print("-" * 40)
+        for partner, count in sorted(self.stats['partner_counts'].items(), key=lambda x: x[1], reverse=True):
+            print(f"{partner}: {count} 条记录")
+        
+        # 保存统计报告（保存在data_process目录下）
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # data_process目录
+        report_path = os.path.join(script_dir, 'processing_report.txt')
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write("数据处理统计报告\n")
+            f.write("="*60 + "\n")
+            f.write(f"处理时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"总处理记录数: {self.stats['total_processed']}\n")
+            f.write(f"JSON解析错误数: {self.stats['json_parse_errors']}\n")
+            f.write(f"行格式错误数: {self.stats['line_parse_errors']}\n")
+            f.write(f"特征提取错误数: {self.stats['feature_extract_errors']}\n")
+            f.write(f"总清洗异常值数: {self.stats['cleaned_values_count']}\n\n")
+            
+            if self.stats['field_clean_stats']:
+                f.write("字段清洗统计:\n")
+                f.write("-" * 40 + "\n")
+                for field, count in sorted(self.stats['field_clean_stats'].items(), key=lambda x: x[1], reverse=True):
+                    f.write(f"{field}: {count} 个异常值\n")
+                f.write("\n")
+            
+            f.write("各合作方数据统计:\n")
+            f.write("-" * 40 + "\n")
+            for partner, count in sorted(self.stats['partner_counts'].items(), key=lambda x: x[1], reverse=True):
+                f.write(f"{partner}: {count} 条记录\n")
+        
+        print(f"\n统计报告已保存到: {report_path}")
+
+def process_all_data():
+    """主函数"""
+    processor = LoanDataProcessor()
+
+    data_dir = "data"  # 默认数据目录
+    
+    # 处理data目录下的所有txt文件
+    processor.process_data_directory(data_dir)
+
+    print("\n" + "="*60)
+    print("数据预处理完成！")
+    print("="*60)
+
+def process_single_file(file_date: str):
+    """处理单个文件的辅助函数"""
+    processor = LoanDataProcessor()
+
+    processor.process_file(f'data/{file_date}.txt')
+    
+    processor.print_statistics()
+
+    print("\n" + "="*60)
+    print("数据预处理完成！")
+    print("="*60)
+
+if __name__ == "__main__":
+    process_single_file("2025-10-09")
+
+
