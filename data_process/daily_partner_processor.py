@@ -552,4 +552,6 @@ def process_single_file(file_date: str):
     print("="*60)
 
 if __name__ == "__main__":
-    process_single_file("2025-10-08")
+    process_single_file("2025-10-09")
+
+
