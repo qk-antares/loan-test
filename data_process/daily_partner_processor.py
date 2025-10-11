@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from collections import defaultdict
 
-from data_process.data_utils import *
+from data_utils import *
 
 
 class LoanDataProcessor:
@@ -544,7 +544,7 @@ def process_single_file(file_date: str):
     processor = LoanDataProcessor()
 
     processor.process_file(f'data/{file_date}.txt')
-    
+
     processor.print_statistics()
 
     print("\n" + "="*60)
@@ -552,6 +552,6 @@ def process_single_file(file_date: str):
     print("="*60)
 
 if __name__ == "__main__":
-    process_single_file("2025-10-09")
+    process_single_file("2025-10-10")
 
 

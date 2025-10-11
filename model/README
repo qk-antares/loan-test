@@ -1,1 +1,2 @@
 模型代码
+ml_model_design_comparison为修改后模型，适应新的数据格式，并实现了公司名称的词袋编码
