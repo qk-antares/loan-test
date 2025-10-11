@@ -42,6 +42,7 @@ class LoanDistributionModel:
         self.scaler = StandardScaler()
 
         # 定义使用的特征列表（保持不变）
+        # TODO: 去掉deviceInfo.applyPos，使用deviceInfo.gpsLatitude，deviceInfo.gpsLongitude
         self.feature_list = [
             'amount',
             'bankCardInfo.bankCode',
@@ -108,7 +109,8 @@ class LoanDistributionModel:
             print(f"警告: 以下特征在数据中缺失: {missing_features}")
 
         # 添加必要的标识列
-        required_cols = ['partner', 'partner_label']
+        # FIX_BUG: 列名 
+        required_cols = ['partner_code', 'label']
         columns_to_keep = available_features + required_cols
 
         processed_df = processed_df[columns_to_keep]
@@ -129,23 +131,32 @@ class LoanDistributionModel:
 
         # 3. 学历编码 (JUNIOR=1, ..., DOCTOR=6)
         if 'degree' in processed_df.columns:
-            degree_mapping = {
-                'JUNIOR': 1, 'SENIOR': 2, 'COLLEGE': 3,
-                'BACHELOR': 4, 'MASTER': 5, 'DOCTOR': 6
-            }
+            # degree_mapping = {
+            #     'JUNIOR': 1, 'SENIOR': 2, 'COLLEGE': 3,
+            #     'BACHELOR': 4, 'MASTER': 5, 'DOCTOR': 6
+            # }
             # 确保原始NaN在映射前被处理，或映射后再次处理
-            processed_df['degree_encoded'] = processed_df['degree'].map(degree_mapping)
-            processed_df['degree_encoded'] = processed_df['degree_encoded'].fillna(0)  # 填充为0，表示未知或最低学历
+            # processed_df['degree_encoded'] = processed_df['degree'].map(degree_mapping)
+            # processed_df['degree_encoded'] = processed_df['degree_encoded'].fillna(0)  # 填充为0，表示未知或最低学历
+            # processed_df = processed_df.drop('degree', axis=1)
+
+            # FIX_BUG: 现在数据预处理脚本已经对学历进行编码，这里只用填充NaN为0
+            processed_df['degree_encoded'] = processed_df['degree'].fillna(0)
             processed_df = processed_df.drop('degree', axis=1)
 
         # 4. 收入等级编码 (A=1, B=2, C=3, D=4)
         if 'income' in processed_df.columns:
-            income_mapping = {'A': 1, 'B': 2, 'C': 3, 'D': 4}
-            processed_df['income_encoded'] = processed_df['income'].map(income_mapping)
-            processed_df['income_encoded'] = processed_df['income_encoded'].fillna(0)  # 填充为0，表示未知或最低收入
+            # income_mapping = {'A': 1, 'B': 2, 'C': 3, 'D': 4}
+            # processed_df['income_encoded'] = processed_df['income'].map(income_mapping)
+            # processed_df['income_encoded'] = processed_df['income_encoded'].fillna(0)  # 填充为0，表示未知或最低收入
+            # processed_df = processed_df.drop('income', axis=1)
+
+            # FIX_BUG: 现在数据预处理脚本已经对收入进行编码，这里只用填充NaN为0
+            processed_df['income_encoded'] = processed_df['income'].fillna(0)
             processed_df = processed_df.drop('income', axis=1)
 
         # 5. 处理分类特征
+        # TODO: 去掉deviceInfo.applyPos，使用deviceInfo.gpsLatitude，deviceInfo.gpsLongitude（这两个是数值型）
         categorical_features = [
             'bankCardInfo.bankCode', 'city', 'companyInfo.industry',
             'companyInfo.occupation', 'customerSource', 'idInfo.gender',
@@ -223,10 +234,10 @@ class LoanDistributionModel:
                 else:
                     processed_df[col] = processed_df[col].fillna(median_val)
 
-        # 确保所有非数值型列（如'partner'列，虽然不是特征，但也要干净）没有NaN
+        # 确保所有非数值型列（如'partner_code'列，虽然不是特征，但也要干净）没有NaN
         for col in processed_df.select_dtypes(exclude=np.number).columns:
             if processed_df[col].isnull().any():
-                processed_df[col] = processed_df[col].fillna('UNKNOWN_CATEGORY')  # 用一个特殊的字符串填充
+                processed_df[col] = processed_df[col].fillna('UNKNOWN')  # 用一个特殊的字符串填充
 
         print(f"预处理完成，特征维度: {processed_df.shape[1]}")
         return processed_df
@@ -262,8 +273,9 @@ class LoanDistributionModel:
             特征矩阵X和每个合作方的标签字典
         """
         # 分离特征和标签
+        # FIX_BUG: 列名
         feature_columns = [col for col in df.columns
-                           if col not in ['partner', 'partner_label']]
+                           if col not in ['partner_code', 'label']]
 
         self.feature_columns = feature_columns
         X = df[feature_columns].values
@@ -274,13 +286,14 @@ class LoanDistributionModel:
         # 为每个合作方准备标签
         Y_dict = {}
         for partner in self.partners:
-            partner_mask = df['partner'] == partner
+            # FIX_BUG: 列名
+            partner_mask = df['partner_code'] == partner
             partner_indices = df.index[partner_mask].tolist()
 
             if len(partner_indices) > 0:
                 Y_dict[partner] = {
                     'X_indices': partner_indices,
-                    'labels': df.loc[partner_mask, 'partner_label'].values
+                    'labels': df.loc[partner_mask, 'label'].values
                 }
 
         print(f"训练数据准备完成:")
@@ -770,8 +783,9 @@ class LoanDistributionModel:
         print("=== 在测试集上评估模型性能 ===")
 
         # 准备测试数据
+        # FIX_BUG: 列名
         feature_columns = [col for col in test_data.columns
-                           if col not in ['partner', 'partner_label']]
+                           if col not in ['partner_code', 'label']]
         X_test = test_data[feature_columns].values
         X_test = self.scaler.transform(X_test)
 
@@ -781,12 +795,12 @@ class LoanDistributionModel:
             if partner not in self.models:
                 continue
 
-            partner_mask = test_data['partner'] == partner
+            partner_mask = test_data['partner_code'] == partner
             if partner_mask.sum() == 0:
                 continue
 
             X_partner = X_test[partner_mask]
-            y_true = test_data.loc[partner_mask, 'partner_label'].values
+            y_true = test_data.loc[partner_mask, 'label'].values
 
             model = self.models[partner]
             y_pred_proba = model.predict_proba(X_partner)[:, 1]
@@ -868,7 +882,7 @@ def main():
 
         # 5️⃣ 初始化模型
         model = LoanDistributionModel()
-        model.partners = train_data["partner"].dropna().unique().tolist()
+        model.partners = train_data["partner_code"].dropna().unique().tolist()
 
         # 6️⃣ 数据预处理
         processed_train_data = model.preprocess_features(train_data)
