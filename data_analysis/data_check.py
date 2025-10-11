@@ -2,11 +2,17 @@ import pandas as pd
 import json
 import re
 from typing import Dict, Any
+import matplotlib.pyplot as plt
+import pandas as pd
+import os
+import glob
+from datetime import datetime
+import numpy as np
 
 
 class DataCheck:
         
-    def __init__(self, data_file: str, original_data_file: str, unused_data_file: str):
+    def __init__(self, data_file: str="processed", original_data_file: str="data/2025-09-20.txt", unused_data_file: str="data_for_analysis"):
         """
         初始化数据分析器
         
@@ -37,7 +43,6 @@ class DataCheck:
     将嵌套字典扁平化为并列的键值对
     """       
     def flatten_dict(self, data, parent_key="", separator="."):
-        
         items = {}
         
         if isinstance(data, dict):
@@ -61,6 +66,29 @@ class DataCheck:
         
         return items
     
+    def remove_parent_fields(self,field_set):
+        """
+        从字段集合中删除父级字段
+        如果存在 A.B，则删除 A
+        """
+        # 创建结果的副本
+        result = set(field_set)
+        
+        # 找出所有父级字段
+        parent_fields = set()
+        for field in field_set:
+            # 如果字段包含点，说明有父级字段
+            if '.' in field:
+                # 获取父级字段（第一个点之前的部分）
+                parent_field = field.split('.')[0]
+                parent_fields.add(parent_field)
+        
+        # 从结果中移除所有父级字段
+        result -= parent_fields
+        
+        return result
+
+
     """
     原始数据简单处理
     """
@@ -76,32 +104,303 @@ class DataCheck:
     """
     合作方分布与通过率分析报告
     """
-    def calculate_distribution(self, df: pd.DataFrame):
+    def calculate_distribution(self):
         print("=" * 60)
         print("合作方分布与通过率分析报告")
         print("=" * 60)
 
-        # 1. 基础统计信息
-        print(f"数据总记录数: {len(df)} 笔")
-        print(f"总体通过率: {(df['label'].sum() / len(df) * 100):.2f}%")
+        # 1. 读取所有时间文件夹下的数据
+        all_data, time_series_data = self._load_all_time_data(self.data_file)
+        
+        if all_data.empty:
+            print("未找到任何数据文件")
+            return
+
+        # 2. 基础统计信息
+        print(f"数据总记录数: {len(all_data)} 笔")
+        print(f"总体通过率: {(all_data['label'].sum() / len(all_data) * 100):.2f}%")
         print()
 
-        # 2. 合作方分布
-        partner_counts = df['partner_code'].value_counts().sort_values(ascending=False)
+        # 3. 合作方分布
+        partner_counts = all_data['partner_code'].value_counts().sort_values(ascending=False)
         print("合作方分布:")
         for partner, count in partner_counts.items():
-            print(f"{partner}: {count} 笔 ({count / len(df) * 100:.2f}%)")
+            print(f"{partner}: {count} 笔 ({count / len(all_data) * 100:.2f}%)")
         print()
 
-        # 3. 各合作方通过率分析
+        # 4. 各合作方通过率分析
         print("各合作方通过率分析:")
         for partner, count in partner_counts.items():
-            partner_df = df[df['partner_code'] == partner]
+            partner_df = all_data[all_data['partner_code'] == partner]
             pass_rate = partner_df['label'].mean()
-            print(f"{partner}: {count} 笔, 通过 {partner_df['label'].sum()} 笔,未通过{count-partner_df['label'].sum()}笔, 通过率 {pass_rate * 100:.2f}%")
+            print(f"{partner}: {count} 笔, 通过 {partner_df['label'].sum()} 笔, 未通过 {count-partner_df['label'].sum()} 笔, 通过率 {pass_rate * 100:.2f}%")
         print()
 
+        # 5. 绘制图表
+        self._plot_partner_trends(time_series_data)
+   
 
+    def _plot_partner_trends(self, time_series_data):
+        """使用 matplotlib 的交互式功能"""
+
+        
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans']
+        plt.rcParams['axes.unicode_minus'] = False
+        
+        if not time_series_data:
+            print("没有时间序列数据可绘制图表")
+            return
+        
+        # 准备数据
+        dates = sorted(time_series_data.keys())
+        partners = set()
+        
+        for date, df in time_series_data.items():
+            partners.update(df['partner_code'].unique())
+        
+        partners = sorted(list(partners))
+        
+        # 准备数据
+        partner_sample_data = {}
+        partner_pass_rate_data = {}
+        
+        for partner in partners:
+            sample_counts = []
+            pass_rates = []
+            for date in dates:
+                df_date = time_series_data[date]
+                partner_df = df_date[df_date['partner_code'] == partner]
+                sample_counts.append(len(partner_df))
+                if len(partner_df) > 0:
+                    pass_rates.append(partner_df['label'].mean() * 100)
+                else:
+                    pass_rates.append(0)
+            partner_sample_data[partner] = sample_counts
+            partner_pass_rate_data[partner] = pass_rates
+        
+        # 计算总样本数和总体通过率
+        total_samples = []
+        total_pass_rates = []
+        active_partners_count = []
+        
+        for date in dates:
+            df_date = time_series_data[date]
+            total_samples.append(len(df_date))
+            if len(df_date) > 0:
+                total_pass_rates.append(df_date['label'].mean() * 100)
+            else:
+                total_pass_rates.append(0)
+            active_partners_count.append(len(df_date['partner_code'].unique()))
+
+        # 第一张图：样本数量趋势
+        fig1, ax1 = plt.subplots(figsize=(14, 8))
+        
+        lines1 = []
+        annotations1 = []  # 存储标注对象
+        colors = plt.cm.tab20(np.linspace(0, 1, len(partners)))
+        
+        # 绘制各合作方样本数
+        for i, partner in enumerate(partners):
+            line1, = ax1.plot(dates, partner_sample_data[partner], marker='o', 
+                            color=colors[i], linewidth=2, markersize=6, label=partner)
+            lines1.append(line1)
+            
+            # 标注具体数值
+            partner_annotations = []
+            for j, (date, count) in enumerate(zip(dates, partner_sample_data[partner])):
+                if count > 0:
+                    ann = ax1.annotate(f'{count}', (date, count), 
+                                    textcoords="offset points", xytext=(0,8), 
+                                    ha='center', fontsize=8, alpha=0.7, color=colors[i])
+                    partner_annotations.append(ann)
+            annotations1.append(partner_annotations)
+        
+        # 绘制总样本数
+        total_line1, = ax1.plot(dates, total_samples, marker='s', linewidth=3, 
+                            color='black', linestyle='--', markersize=8, label='总样本数')
+        
+        # 标注总样本数值
+        total_annotations1 = []
+        for j, (date, total) in enumerate(zip(dates, total_samples)):
+            ann = ax1.annotate(f'{total}', (date, total), 
+                            textcoords="offset points", xytext=(0,12), 
+                            ha='center', fontsize=10, fontweight='bold', color='red')
+            total_annotations1.append(ann)
+        
+        ax1.set_title('各合作方样本数随时间变化', fontsize=14, fontweight='bold')
+        ax1.set_ylabel('样本数量', fontsize=12)
+        ax1.grid(True, alpha=0.3)
+        ax1.tick_params(axis='x', rotation=45)
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        
+        # 创建图例
+        legend1 = ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left', 
+                            frameon=True, fancybox=True, shadow=True)
+        
+        # 使图例可交互 - 修复版本
+        def on_pick1(event):
+            # 这个事件在点击图例项时触发
+            legline = event.artist
+            origline = linedict1[legline]
+            visible = not origline.get_visible()
+            origline.set_visible(visible)
+            
+            # 设置图例项的透明度
+            if visible:
+                legline.set_alpha(1.0)
+            else:
+                legline.set_alpha(0.3)
+            
+            # 处理数值标注
+            if origline == total_line1:
+                for ann in total_annotations1:
+                    ann.set_visible(visible)
+            else:
+                index = lines1.index(origline)
+                for ann in annotations1[index]:
+                    ann.set_visible(visible)
+            
+            fig1.canvas.draw()
+        
+        # 映射图例项到原始线条
+        linedict1 = {}
+        for legline, origline in zip(legend1.get_lines(), lines1 + [total_line1]):
+            legline.set_picker(5)  # 5 points tolerance
+            linedict1[legline] = origline
+        
+        fig1.canvas.mpl_connect('pick_event', on_pick1)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        # 第二张图：通过率趋势
+        fig2, ax2 = plt.subplots(figsize=(14, 8))
+        
+        lines2 = []
+        annotations2 = []  # 存储标注对象
+        
+        # 绘制各合作方通过率
+        for i, partner in enumerate(partners):
+            line2, = ax2.plot(dates, partner_pass_rate_data[partner], marker='s', 
+                            color=colors[i], linewidth=2, markersize=6, label=partner)
+            lines2.append(line2)
+            
+            # 标注具体数值
+            partner_annotations = []
+            for j, (date, rate) in enumerate(zip(dates, partner_pass_rate_data[partner])):
+                if rate > 0:
+                    ann = ax2.annotate(f'{rate:.1f}%', (date, rate), 
+                                    textcoords="offset points", xytext=(0,8), 
+                                    ha='center', fontsize=8, alpha=0.7, color=colors[i])
+                    partner_annotations.append(ann)
+            annotations2.append(partner_annotations)
+        
+        # 绘制总体通过率
+        total_line2, = ax2.plot(dates, total_pass_rates, marker='D', linewidth=3, 
+                            color='black', linestyle='--', markersize=8, label='总体通过率')
+        
+        # 标注总体通过率数值
+        total_annotations2 = []
+        for j, (date, rate) in enumerate(zip(dates, total_pass_rates)):
+            ann = ax2.annotate(f'{rate:.1f}%', (date, rate), 
+                            textcoords="offset points", xytext=(0,12), 
+                            ha='center', fontsize=10, fontweight='bold', color='red')
+            total_annotations2.append(ann)
+        
+        ax2.set_title('各合作方通过率随时间变化', fontsize=14, fontweight='bold')
+        ax2.set_ylabel('通过率 (%)', fontsize=12)
+        ax2.set_xlabel('日期', fontsize=12)
+        ax2.grid(True, alpha=0.3)
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.set_ylim(bottom=0)
+        
+        # 创建图例
+        legend2 = ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left', 
+                            frameon=True, fancybox=True, shadow=True)
+        
+        # 使图例可交互
+        def on_pick2(event):
+            legline = event.artist
+            origline = linedict2[legline]
+            visible = not origline.get_visible()
+            origline.set_visible(visible)
+            
+            if visible:
+                legline.set_alpha(1.0)
+            else:
+                legline.set_alpha(0.3)
+            
+            # 处理数值标注
+            if origline == total_line2:
+                for ann in total_annotations2:
+                    ann.set_visible(visible)
+            else:
+                index = lines2.index(origline)
+                for ann in annotations2[index]:
+                    ann.set_visible(visible)
+            
+            fig2.canvas.draw()
+        
+        # 映射图例项到原始线条
+        linedict2 = {}
+        for legline, origline in zip(legend2.get_lines(), lines2 + [total_line2]):
+            legline.set_picker(5)  # 5 points tolerance
+            linedict2[legline] = origline
+        
+        fig2.canvas.mpl_connect('pick_event', on_pick2)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        # 第三张图：活跃合作方数量
+        fig3, ax3 = plt.subplots(figsize=(12, 6))
+
+        # 绘制活跃合作方数量
+        line3, = ax3.plot(dates, active_partners_count, marker='^', linewidth=3, 
+                        color='green', markersize=8, label='活跃合作方数量')
+
+        # 标注具体数值
+        annotations3 = []
+        for j, (date, count) in enumerate(zip(dates, active_partners_count)):
+            ann = ax3.annotate(f'{count}家', (date, count), 
+                            textcoords="offset points", xytext=(0,10), 
+                            ha='center', fontsize=10, fontweight='bold', color='blue')
+            annotations3.append(ann)
+
+        ax3.set_title('活跃合作方数量随时间变化', fontsize=14, fontweight='bold')
+        ax3.set_ylabel('合作方数量', fontsize=12)
+        ax3.set_xlabel('日期', fontsize=12)
+        ax3.grid(True, alpha=0.3)
+        ax3.tick_params(axis='x', rotation=45)
+        ax3.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+        # 创建普通图例（第三张图不需要交互）
+        ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+
+        plt.tight_layout()
+        plt.show()
+
+        # 打印输出各阶段活跃合作方信息
+        print("\n" + "="*60)
+        print("各阶段活跃合作方详情")
+        print("="*60)
+
+        for i, date in enumerate(dates):
+            df_date = time_series_data[date]
+            active_partners = sorted(df_date['partner_code'].unique())
+            count = active_partners_count[i]
+            
+            print(f"{date}: {count}家活跃合作方")
+            print(", ".join(active_partners))
+            
+
+        print("="*60)
+        
+        print("使用说明：")
+        print("1. 点击右侧图例中的线条或文字可以显示/隐藏对应的折线")
+        print("2. 隐藏的图例会变灰显示")
+        print("3. 折线上的数值会随折线一起显示或隐藏")
+      
     """ 
     检查单个值是否看起来像脱敏数据
     """
@@ -153,6 +452,7 @@ class DataCheck:
                     if value is not None and self.is_masked_value(value):
                         masked_features_set.add(key)
             cleaned_masked_features = self.clean_feature_name(masked_features_set)
+            cleaned_masked_features = self.remove_parent_fields(cleaned_masked_features)
             self.masked_features = list(cleaned_masked_features)
             print(f"脱敏特征(共{len(self.masked_features)}个) :{self.masked_features}")
         print()
@@ -179,8 +479,8 @@ class DataCheck:
             if i >= 100:  # 扫描100条记录，通常足够覆盖所有特征
                 break
             all_features_set.update(record.keys())
-        
         cleaned_original_features = self.clean_feature_name(all_features_set)
+        cleaned_original_features = self.remove_parent_fields(cleaned_original_features)
         print(f"原始特征(共{len(cleaned_original_features)}个): {sorted(list(cleaned_original_features))}")
         print()
         
@@ -397,35 +697,29 @@ class DataCheck:
             return None
 
 
-    def data_compliance_check(self, df: pd.DataFrame, location_mode='standard'):
+    def data_compliance_check(self, df: pd.DataFrame):
         """
         条件筛选分析报告
         
         参数:
         df: 数据框
-        location_mode: 地理位置筛选模式
-            - 'standard': 使用 province/city 字段
-            - 'gps': 使用 deviceInfo.applyPos字段  
-            - 'both': 双重筛选，两种地理位置都需要满足条件
         """
         print("=" * 80)
-        print(f"条件筛选报告 - 地理位置模式: {location_mode}")
+        print("条件筛选报告 - 地理位置模式: GPS")
         print("=" * 80)
+
+        # 计算被排除的条目数量
+        excluded_count = len(df[df['partner_code'] == 'YXM_CODE'])
         
-        # 根据模式确定地理位置字段
-        if location_mode == 'standard':
-            province_field = 'province'
-            city_field = 'city'
-        elif location_mode == 'gps':
-            province_field = 'deviceInfo.applyPos'
-            city_field = 'deviceInfo.applyPos'
-        elif location_mode == 'both':
-            province_field = 'province'
-            city_field = 'city'
-            gps_province_field = 'deviceInfo.applyPos'
-            gps_city_field = 'deviceInfo.applyPos'
-        else:
-            raise ValueError("location_mode 必须是 'standard', 'gps' 或 'both'")
+        # 过滤掉 partner_code 为 YXM_CODE 的数据
+        df_filtered = df[df['partner_code'] != 'YXM_CODE']
+
+        print(f"总共排除 {excluded_count} 条 partner_code 为 YXM_CODE 的数据")
+        print(f"剩余 {len(df_filtered)} 条数据进行处理")
+        
+        # 使用GPS地理位置字段
+        province_field = 'deviceInfo.applyPos'
+        city_field = 'deviceInfo.applyPos'
         
         # 定义需要检查的必需字段
         required_fields = [
@@ -438,11 +732,22 @@ class DataCheck:
             'degree'
         ]
         
-        # 如果是双重筛选模式，添加GPS字段到必需字段检查
-        if location_mode == 'both':
-            required_fields.extend([gps_province_field, gps_city_field])
+        # 初始化统计字典
+        failure_stats = {}
         
-        for index, row in df.iterrows():
+        def add_failure_stat(partner_code, failure_type, reason=""):
+            """添加失败统计"""
+            key = f"{partner_code}_{failure_type}"
+            if key not in failure_stats:
+                failure_stats[key] = {
+                    'partner_code': partner_code,
+                    'failure_type': failure_type,
+                    'reason': reason,
+                    'count': 0
+                }
+            failure_stats[key]['count'] += 1
+        
+        for index, row in df_filtered.iterrows():
             # 提前检查所有必需字段是否为空
             missing_fields = []
             for field in required_fields:
@@ -454,20 +759,15 @@ class DataCheck:
             if missing_fields:
                 print(f"行 {index}: 缺失字段 {missing_fields}")
                 self.missing_data.append(row)
+                add_failure_stat(row.get('partner_code'), '缺失字段', f"缺失字段: {missing_fields}")
                 continue
 
             partner_code = row.get('partner_code')
             rules = self.get_rules_by_partner_code(partner_code)
             
-            # 获取地理位置信息
-            if location_mode == 'both':
-                province = row.get(province_field)
-                city = row.get(city_field)
-                gps_province = row.get(gps_province_field)
-                gps_city = row.get(gps_city_field)
-            else:
-                province = row.get(province_field)
-                city = row.get(city_field)
+            # 获取GPS地理位置信息
+            province = row.get(province_field)
+            city = row.get(city_field)
             
             company = row.get('companyInfo.companyName')
             age = row.get('idInfo.birthDate')
@@ -477,294 +777,336 @@ class DataCheck:
             if partner_code == "AWJ_CODE":
                 if age < 22 or age > 49:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-49范围内")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    # 检查标准地理位置
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    # 检查GPS地理位置
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
                 
                 # 检查公司名称是否包含禁止关键词
                 if company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '公司名称不符合', f"公司名称包含禁止关键词")
                     continue
                     
             elif partner_code == "HXH_CODE":
-                if age < 22 or age > 55 or not date:
+                if age < 22 or age > 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
                     continue
 
             elif partner_code == "NWD_CODE":
-                if age < 23 or age > 55 or not date or date < 7:
+                if age < 23 or age > 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-55范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 7:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于7天")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
                     
             elif partner_code == "LXJ_CODE":
-                if age < 23 or age > 50 or not date or date < 30:
+                if age < 23 or age > 50:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-50范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 30:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
 
             elif partner_code == "XYF_CODE":
-                if age < 23 or age > 55 or not date or date < 90 or degree == 'JUNIOR':
+                if age < 23 or age > 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-55范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 90:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于90天")
+                    continue
+                elif degree == 'JUNIOR':
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '学历不符合', "学历为初中不符合要求")
                     continue
 
             elif partner_code == "RONG_CODE":
                 if age < 22 or age > 50:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-50范围内")
                     continue
                 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
                 
                 # 检查公司名称是否包含禁止关键词
                 if company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '公司名称不符合', f"公司名称包含禁止关键词")
                     continue
 
             elif partner_code == "XY_CODE":
-                if not date or date < 30:
+                if not date:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 30:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
                     continue
                     
             elif partner_code == "JY_CODE":
                 if age < 23 or age > 50:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-50范围内")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
 
             elif partner_code == "FLXD_CODE":
-                if age < 22 or age > 55 or not date or date < 90:
+                if age < 22 or age > 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 90:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于90天")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
 
             elif partner_code == "FQY_CODE":
                 if age < 22 or age >= 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-54范围内")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
 
             elif partner_code == "BBS_CODE":
-                if age < 22 or age > 55 or not date or date < 30:
+                if age < 22 or age > 55:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
+                    continue
+                elif not date:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
+                    continue
+                elif date < 30:
+                    self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
 
             elif partner_code == "TMDP_CODE":
                 if age < 22 or age > 48:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-48范围内")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
                         
             elif partner_code == "HH_CODE":
                 if age < 22:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}小于22岁")
                     continue
 
-                # 地理位置检查
-                location_valid = True
-                if location_mode == 'both':
-                    standard_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    standard_valid = standard_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                    
-                    gps_valid = not any(keyword in str(gps_province) for keyword in rules.get('province', []))
-                    gps_valid = gps_valid and not any(keyword in str(gps_city) for keyword in rules.get('city', []))
-                    
-                    location_valid = standard_valid and gps_valid
-                else:
-                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                # GPS地理位置检查
+                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                 
                 if not location_valid:
                     self.invalid_data.append(row)
+                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
                     continue
-                    
-        print(len(df), "条数据中:")
+        
+        # 输出总体统计
+        print(f"\n{len(df_filtered)} 条数据中:")
         print("筛选未通过数据条数:", len(self.invalid_data)) 
         print("缺失数据条数:", len(self.missing_data))
-        print("未通过比例: {:.2f}%".format((len(self.invalid_data) + len(self.missing_data)) / len(df) * 100))
+        print("未通过比例: {:.2f}%".format((len(self.invalid_data) + len(self.missing_data)) / len(df_filtered) * 100))
+        
+        # 输出详细失败统计
+        print("\n" + "=" * 80)
+        print("详细失败类型统计")
+        print("=" * 80)
+        
+        if failure_stats:
+            # 按partner_code和失败类型排序
+            sorted_stats = sorted(failure_stats.values(), 
+                                key=lambda x: (x['partner_code'], x['count']), 
+                                reverse=True)
+            
+            current_partner = None
+            for stat in sorted_stats:
+                if stat['partner_code'] != current_partner:
+                    current_partner = stat['partner_code']
+                    print(f"\n{current_partner}:")
+                    print("-" * 40)
+                
+                print(f"  {stat['failure_type']}: {stat['count']} 条")
+                if stat['reason']:
+                    print(f"    原因: {stat['reason']}")
+        else:
+            print("没有失败数据")
+        
         print()
+
+    def _load_all_time_data(self, data_file: str):
+        """加载所有时间文件夹下的数据"""
+        all_data_list = []
+        time_series_data = {}  # 用于存储时间序列数据
+        
+        if os.path.isfile(data_file):
+            # 如果是单个文件，直接读取
+            df = pd.read_csv(data_file)
+            date_str = os.path.basename(data_file).split('.')[0]
+            # df['date'] = date_str
+            all_data_list.append(df)
+            
+            # 添加到时间序列数据
+            time_series_data[date_str] = df
+            
+        elif os.path.isdir(data_file):
+            # 遍历所有时间文件夹
+            date_folders = [f for f in os.listdir(data_file) 
+                        if os.path.isdir(os.path.join(data_file, f))]
+            
+            for date_folder in sorted(date_folders):
+                date_path = os.path.join(data_file, date_folder)
+                all_data_file = os.path.join(date_path, "all_data.csv")
+                
+                if os.path.exists(all_data_file):
+                    try:
+                        df = pd.read_csv(all_data_file)
+                        # df['date'] = date_folder  # 添加日期列
+                        all_data_list.append(df)
+                        time_series_data[date_folder] = df
+                        print(f"成功加载: {date_folder}/all_data.csv, 形状: {df.shape}")
+                    except Exception as e:
+                        print(f"加载文件 {all_data_file} 时出错: {e}")
+        
+        # 合并所有数据
+        if all_data_list:
+            all_data = pd.concat(all_data_list, ignore_index=True)
+            print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
+            return all_data, time_series_data
+        else:
+            return pd.DataFrame(), {}
 
     """
     合作方分布以及特征分析报告
     """
     def analyze_data(self):
-        df_filtered = pd.read_csv(self.data_file) # 实际使用的数据
-        df_original = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 原始数据，包含被过滤掉的特征
-        df_unused = pd.read_csv(self.unused_data_file) # 未使用的数据版本，使用了applyPos字段
 
+        # all_data, time_series_data = self._load_all_time_data(self.data_file)
+        unused_data, unused_time_series_data = self._load_all_time_data(self.unused_data_file)
+        # original_data = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 原始数据，包含被过滤掉的特征
         # 脱敏特征统计
-        self.analyze_masked_features(df_original)
+        # self.analyze_masked_features(original_data)
 
         # 特征筛选统计
-        self.analyze_filtered_features(df_filtered, df_original)
+        # self.analyze_filtered_features(all_data, original_data)
 
-        # 合作方分布与通过率分析
-        self.calculate_distribution(df_filtered)
+        # # 合作方分布与通过率分析
+        # self.calculate_distribution()
 
-        # 各特征详细分析
-        self.print_detailed_analysis(df_filtered)
+        # # 各特征详细分析
+        # self.print_detailed_analysis(all_data)
 
-        # 数据符合验证
-        self.data_compliance_check(df_unused,'both')
-
+        # # 数据符合验证
+        self.data_compliance_check(unused_data)
 
 
 
 def main():
-    check = DataCheck('train/all_data.csv', 'data/2025-09-20.txt', 'data/all_data.csv')
+    check = DataCheck()
     check.analyze_data()
 
 if __name__ == "__main__":
