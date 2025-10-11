@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,上饶市,农夫山泉,H,54,APP,2,47.7,M,汉,717,4,01,SIBLING,FRIENDS,1,92.569,江西省,CONSUME,01,,28.967966896473134,116.89922306500965,ANDROID,,0
 100000,103,黔西南布依族苗族自治州,无限电脑科技,H,54,APP,2,37.0,M,布依,4391,4,01,FATHER,FRIENDS,1,96.2,贵州省,CONSUME,01,,25.046161340950524,105.73444659030591,ANDROID,,0
 100000,102,青岛市,中国人寿保险股份有限公司,J,13,XCX,3,35.6,M,汉,6900,4,01,MOTHER,FRIENDS,1,90.259,山东省,CONSUME,01,,36.16727308140134,120.70286305171457,ANDROID,,0

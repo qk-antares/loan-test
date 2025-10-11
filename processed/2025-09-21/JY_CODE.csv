@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,大理白族自治州,滇西水泥厂,C,24,XCX,2,30.0,M,白,6550,2,01,FATHER,FRIENDS,2,70,云南省,CONSUME,01,,25.694976942274305,100.3122669813368,ANDROID,,0
 100000,102,泉州市,鑫得利便利店,H,54,XCX,4,31.8,F,壮,562,2,01,MATE,RELATIVES,1,70,福建省,CONSUME,01,,26.178434224309294,119.02506482270091,ANDROID,,0
 100000,,厦门市,起点物业有限公司,L,17,APP,3,47.7,F,汉,4586,4,01,MATE,FATHER,1,70,福建省,CONSUME,01,,23.119014485677084,113.29783637152778,ANDROID,,0

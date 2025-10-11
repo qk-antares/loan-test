@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,102,白山市,刘禹琪个人工作室,Z,90,APP,4,27.3,M,汉,1929,4,,SIBLING,MATE,2,70,吉林省,CONSUME,,12,43.81321553930363,125.3187477588866,ANDROID,false,0
 10000,105,菏泽市,燕郊汉王制造有限公司,G,13,XCX,2,28.6,M,汉,1372,4,,SIBLING,MATE,2,95.072,山东省,CONSUME,,12,39.96311821831597,116.82234239366319,ANDROID,,0
 10000,,巴中市,成都市绿盛异型材有限公司,Z,90,APP,3,38.0,M,汉,4288,2,,FATHER,FRIENDS,2,70,四川省,CONSUME,,12,30.886339,104.192994,ANDROID,false,0

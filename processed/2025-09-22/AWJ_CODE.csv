@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,衡水市,衡水北斗建筑工程有限公司,Z,90,APP,4,28.8,F,汉,6381,2,01,MATE,FATHER,1,72.54,河北省,CONSUME,01,,19.10110473128863,108.65856652679175,ANDROID,,0
 100000,105,漯河市,河南匡正,Z,90,APP,3,34.0,M,汉,4960,2,01,MATE,FATHER,1,90.611,河南省,CONSUME,01,,33.57356408667139,114.0368992862843,ANDROID,,0
 100000,105,渭南市,富平闪送外卖配送部,F,17,APP,4,25.7,M,汉,1389,2,01,MATE,COLLEAGUE,2,88.44318,陕西省,CONSUME,01,,37.013860406526237,109.83437493884773,ANDROID,,0

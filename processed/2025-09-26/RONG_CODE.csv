@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,台州市,壹号装饰公司,,,APP,2,41.7,M,汉,3865,3,01,MATE,CHILDREN,1,70,浙江省,CONSUME,01,,28.388000519300865,121.37226238458467,ANDROID,,0
 100000,103,宿迁市,兴盟包装有限公司,,,XCX,2,22.8,M,汉,1951,2,01,FATHER,FRIENDS,2,70,江苏省,CONSUME,01,,32.163058810763886,119.84915825737848,ANDROID,,0
 100000,,广安市,北京中科软科技有限公司,,,APP,3,31.0,M,汉,6610,2,01,MOTHER,FRIENDS,2,88.706,四川省,CONSUME,01,,30.629352,104.147315,ANDROID,,0

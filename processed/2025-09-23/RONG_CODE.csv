@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,荆州市,浩宇制衣,,,APP,2,37.6,M,汉,5988,2,01,FATHER,FRIENDS,2,70,湖北省,CONSUME,01,,29.860353,112.962526,ANDROID,,0
 100000,105,长沙市,学成教育,,,APP,4,48.9,M,汉,719,2,01,MATE,COLLEAGUE,1,82.73,湖南省,CONSUME,02,,28.203148608817114,112.96735184845518,ANDROID,,0
 100000,,汕头市,刘妙芬个人工作室,,,XCX,2,31.0,F,汉,6688,2,01,MATE,SIBLING,1,70,广东省,CONSUME,01,,23.15486390078831,113.32292794595614,ANDROID,,0

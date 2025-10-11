@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,汕头市,自由职业,Z,90,APP,2,45.2,M,汉,3896,2,01,MATE,COLLEAGUE,1,97.5,广东省,CONSUME,01,,23.30118785300311,116.38566727355362,ANDROID,,0
 100000,,伊春市,闫泽个人工作室,Z,90,APP,4,22.8,M,汉,2697,4,01,PARENTS,FRIENDS,2,96.2,黑龙江省,CONSUME,01,,47.73288428336894,128.8085394396993,ANDROID,,0
 100000,104,漳州市,陈亚娟个人工作室,Z,90,APP,3,35.6,F,汉,3889,4,01,PARENTS,FRIENDS,1,70,福建省,CONSUME,01,,24.227739,117.91144,ANDROID,false,0

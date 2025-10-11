@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,十堰市,陈波个人工作室,,,APP,4,27.0,M,汉,7029,2,01,MATE,FRIENDS,2,87.03,湖北省,CONSUME,01,,32.841179,110.798897,ANDROID,,0
 100000,,南宁市,广西南宁鑫安消防有限公司,,,XCX,2,40.6,M,汉,3856,4,01,FRIENDS,RELATIVES,1,70,广西壮族自治区,CONSUME,01,,22.90682397429847,108.30257411047585,ANDROID,,0
 100000,,赤峰市,玉泉区大飞烟酒商店,,,XCX,3,27.9,M,汉,650,2,01,MOTHER,FRIENDS,2,70,内蒙古自治区,CONSUME,01,,39.13670301649306,117.07647162543402,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,福州市,鸿发石业有限公司,C,24,APP,2,34.0,M,汉,471,3,01,FATHER,SIBLING,2,100.0,福建省,CONSUME,01,,32.19748164648651,113.67747014750323,IOS,,0
 100000,,毕节市,蔡国海个人工作室,Z,90,APP,2,23.3,M,汉,2522,2,01,PARENTS,COLLEAGUE,2,95.25,贵州省,CONSUME,01,,26.70591565173058,104.37112536645235,ANDROID,,0
 100000,,马鞍山市,张腾飞个人工作室,Z,90,APP,4,32.2,M,汉,5509,2,01,PARENTS,FRIENDS,2,77.0,安徽省,CONSUME,01,,31.618381511068127,118.01524082488808,ANDROID,,0

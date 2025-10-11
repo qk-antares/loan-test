@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,龙岩市,辉煌礼服,Z,90,APP,2,27.1,M,汉,139,2,01,MATE,FRIENDS,1,96.66,福建省,CONSUME,01,,25.42170288165612,116.57701003016833,ANDROID,,0
 100000,,菏泽市,山东邦航建筑工程有限公司,Z,90,APP,2,40.8,M,汉,4100,4,01,MATE,FRIENDS,1,94.29,山东省,CONSUME,01,,35.45809387721752,116.0936359830518,ANDROID,,0
 100000,103,上海市,上海玺慈实业,C,24,APP,2,47.7,F,汉,99999,4,01,PARENTS,CHILDREN,2,89.496,上海市,CONSUME,01,,31.155454317980739,121.13055310467274,ANDROID,,0

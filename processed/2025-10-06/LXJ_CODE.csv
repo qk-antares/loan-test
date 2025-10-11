@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,天水市,烟台轨迹网络有限公司,G,13,APP,4,29.1,M,汉,628,2,01,FATHER,MOTHER,2,70,甘肃省,CONSUME,01,,31.534431,120.357912,ANDROID,false,0
 100000,103,绍兴市,亲民消防有限公司,S,11,APP,2,25.2,M,汉,288,4,01,PARENTS,RELATIVES,2,76.35351,浙江省,CONSUME,01,,29.960846669500417,120.58795222415997,ANDROID,false,0
 100000,306,东莞市,东莞市高田汽车服务有限公司,O,17,APP,3,34.5,F,汉,4310,4,,MATE,FRIENDS,1,70,广东省,CONSUME,01,,22.879161670576168,113.8342910717325,ANDROID,false,0

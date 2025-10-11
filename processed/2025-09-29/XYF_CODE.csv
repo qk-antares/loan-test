@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,310,杭州市,万通智控科技股份有限公司,G,13,APP,4,39.5,M,汉,4302,2,,PARENTS,MATE,1,70,浙江省,CONSUME,,12,30.452655815512498,120.31205672512684,ANDROID,false,1
 10000,103,七台河市,李龙个人工作室,Z,90,APP,3,28.5,M,汉,856,2,,PARENTS,FRIENDS,2,70,黑龙江省,CONSUME,,12,39.064865,117.179743,ANDROID,false,0
 10000,102,成都市,成都振佳汽车零部件有限公司,C,24,APP,3,34.3,F,汉,4299,4,,MATE,MOTHER,1,70,四川省,CONSUME,,12,30.526710737977866,104.24899910844779,ANDROID,false,1

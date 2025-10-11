@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,105,合肥市,无锡台亿达精密工业有限公司,Z,90,XCX,2,43.4,M,汉,4191,3,,FRIENDS,MATE,1,70,安徽省,CONSUME,,12,31.465311377220304,120.46176270148692,ANDROID,,0
 10000,105,铜仁市,木黄镇人民政府,S,11,APP,3,43.8,M,土家,4947,2,,MATE,FRIENDS,1,90.922,贵州省,CONSUME,,12,28.093948937774959,108.72081653112231,ANDROID,,0
 10000,105,上海市,上海东湖物业管理有限公司,Z,90,APP,4,34.0,M,汉,5214,2,,MATE,FRIENDS,1,70,上海市,CONSUME,,12,31.252199,121.587209,ANDROID,false,0

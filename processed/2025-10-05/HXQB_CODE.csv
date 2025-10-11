@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,楚雄彝族自治州,禄丰县广通镇学章百货经营部,H,54,APP,2,54.0,M,汉,1903,4,01,MATE,FRIENDS,1,96.0,云南省,CONSUME,01,,24.721101702511338,118.63017172718652,ANDROID,,0
 100000,103,揭阳市,普宁市公安局,S,11,APP,4,41.7,M,汉,4809,3,01,MOTHER,SIBLING,1,70,广东省,CONSUME,02,,23.28803,116.165508,ANDROID,,0
 100000,403,南京市,南京溧水区移动通信有限公司,G,13,APP,4,48.6,F,汉,4900,2,01,MATE,RELATIVES,1,79.0,江苏省,CONSUME,01,,32.02993652842529,118.60809938155336,ANDROID,,0

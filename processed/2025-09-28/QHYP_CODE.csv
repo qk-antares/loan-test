@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,衡水市,润德全民健身中心,R,17,XCX,3,35.3,M,汉,5164,3,01,PARENTS,FRIENDS,1,78.395,河北省,CONSUME,01,,34.458499712576458,109.05298418782431,ANDROID,,0
 100000,102,临沂市,沂水凤起服装厂,C,24,APP,2,30.7,M,汉,6061,3,01,MATE,COLLEAGUE,1,82.409,山东省,CONSUME,01,,25.425542330804114,105.14939587123848,ANDROID,,0
 100000,105,四平市,双辽市沃艺化肥经销处,C,24,APP,2,48.4,M,汉,180,4,01,PARENTS,FRIENDS,2,70,吉林省,CONSUME,01,,43.936702155561508,123.74659598540565,ANDROID,,0

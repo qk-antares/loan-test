@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,广州市,广州市伙记餐饮管理有限公司,I,54,APP,4,38.4,F,汉,3478,3,01,MATE,SIBLING,1,76.537285,广东省,CONSUME,01,,23.118762391607445,113.27007815697347,ANDROID,,0
 100000,104,赣州市,兴国华强工程机械有限责任公司,C,24,APP,2,35.9,M,汉,6401,4,01,MATE,MOTHER,1,77.883,江西省,CONSUME,01,,26.42898221972536,115.30845130073266,ANDROID,,0
 100000,104,乐山市,四川嘉韵文化有限公司,R,17,XCX,2,35.3,F,汉,4426,3,,MATE,RELATIVES,1,70,四川省,CONSUME,01,,29.617583097406173,103.7546117797118,ANDROID,,0

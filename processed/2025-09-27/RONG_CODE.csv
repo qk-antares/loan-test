@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,乐山市,鱼爪网(成都)企业管理咨询有限公司,,,APP,2,29.3,M,汉,495,4,01,FATHER,COLLEAGUE,2,87.059,四川省,CONSUME,01,,30.652106,104.044944,ANDROID,,0
 100000,102,邵阳市,海涛广告装饰工程有限公司,,,APP,2,26.5,M,汉,1,2,01,FRIENDS,MATE,2,91.422,湖南省,CONSUME,01,,22.649531,113.92112,ANDROID,,0
 100000,,陇南市,山城老火锅,,,XCX,2,25.2,M,汉,325,3,01,PARENTS,FRIENDS,2,70,甘肃省,CONSUME,01,,29.925835774739582,120.34993326822917,ANDROID,,0

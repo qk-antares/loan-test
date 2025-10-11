@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,汕尾市,比亚迪有限公司,C,24,APP,4,23.4,M,汉,1762,4,01,FATHER,FRIENDS,1,84.757,广东省,CONSUME,01,,22.784551839489298,115.37153074806264,IOS,false,0
 100000,103,肇庆市,强力有限公司,Z,90,APP,3,34.0,F,汉,4412,2,,PARENTS,COLLEAGUE,1,70,广东省,CONSUME,01,,23.07433,112.733132,ANDROID,,0
 100000,104,珠海市,河南省新乡市伊家羊汤馆,H,54,APP,4,41.0,F,回,2552,3,01,FATHER,MOTHER,2,88.745,广东省,CONSUME,01,,35.27842021610097,113.90306763590336,ANDROID,,0

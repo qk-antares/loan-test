@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,柳州市,浙江盛凯纸制品有限公司,Z,90,APP,2,47.8,M,壮,99999,2,01,SIBLING,SIBLING,1,70,广西壮族自治区,CONSUME,01,,30.396416580045803,120.42487514592429,ANDROID,,0
 100000,,南通市,紫琅快餐,Z,90,APP,2,43.1,M,汉,4131,2,01,MATE,COLLEAGUE,1,97.5,江苏省,CONSUME,01,,31.807033160004545,121.6863482881093,ANDROID,,0
 100000,103,新乡市,昆明盛盈工贸有限公司,C,24,APP,2,32.8,M,汉,5142,3,01,MOTHER,FRIENDS,1,70,河南省,CONSUME,01,,35.102385,112.898865,ANDROID,,0

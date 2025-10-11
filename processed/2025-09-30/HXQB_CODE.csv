@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,泰州市,天源餐饮管理有限公司公司,I,54,APP,4,41.3,M,汉,3281,2,01,PARENTS,FRIENDS,1,70,江苏省,CONSUME,01,,33.093898794193787,120.11650259219657,ANDROID,,0
 100000,103,南京市,金奥费尔蒙大酒店,I,54,APP,2,55.5,M,汉,451,2,01,FRIENDS,RELATIVES,1,70,江苏省,CONSUME,01,,32.02179543090035,119.13617118238058,ANDROID,,0
 100000,103,保定市,北京恒昌园林工程有限公司,E,24,APP,4,44.7,M,汉,850,4,01,MATE,FRIENDS,1,79.67067,河北省,CONSUME,01,,39.81853115628384,116.81667940987163,ANDROID,,0

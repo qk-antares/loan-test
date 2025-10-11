@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,102,商丘市,夏邑县第四初级中学,Z,90,APP,4,43.4,M,汉,956,2,,MATE,MOTHER,1,70,河南省,CONSUME,,12,34.24078830295139,116.16120632595486,ANDROID,,1
 10000,105,岳阳市,湖南省汨罗市罗江镇人民政府,S,11,APP,4,36.9,M,汉,5507,4,,MATE,SIBLING,1,80.105,湖南省,CONSUME,,12,28.813459295678685,113.08342193009983,ANDROID,false,0
 10000,,长春市,白方辉个人工作室,Z,90,APP,2,30.2,M,汉,5941,2,,MATE,FRIENDS,1,86.464,吉林省,CONSUME,,12,45.131304,126.416419,ANDROID,false,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,,揭阳市,裕达汽配,H,54,XCX,2,36.2,M,汉,5193,4,,MATE,FRIENDS,2,70,广东省,CONSUME,,12,22.687304144965278,114.10858968098958,ANDROID,false,0
 10000,,梅州市,品牌女装折扣店,H,54,APP,2,46.9,F,汉,278,4,,PARENTS,RELATIVES,1,70,广东省,CONSUME,,12,22.652329,114.003927,ANDROID,false,0
 10000,105,北海市,广西建筑材料科学研究设计院有限公司,P,13,APP,4,31.5,M,汉,1298,4,,FATHER,FRIENDS,2,92.214,广西壮族自治区,CONSUME,,12,22.88089800704165,108.28127773146909,ANDROID,false,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,宿迁市,刘振个人工作室,Z,90,XCX,3,37.6,M,汉,3101,4,01,MATE,FATHER,1,70,江苏省,CONSUME,01,,33.22381198587759,118.19500307608409,ANDROID,,0
 100000,307,开封市,北京三快科技有限公司,G,13,APP,3,36.2,M,汉,3643,2,01,FATHER,FRIENDS,2,70,河南省,CONSUME,01,,34.427468,114.198866,ANDROID,,0
 100000,,郑州市,河南省地质研究院,Z,90,XCX,4,42.3,M,汉,5372,4,01,FRIENDS,FATHER,3,100.0,河南省,CONSUME,01,,39.825022,116.282928,ANDROID,,0

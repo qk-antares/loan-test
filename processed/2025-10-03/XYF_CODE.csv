@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,,南京市,格林豪泰酒店,Z,90,APP,2,30.3,F,汉,2066,2,,FATHER,MATE,1,86.51,江苏省,CONSUME,,12,31.959354,118.747579,ANDROID,false,0
 10000,,内江市,四川众志微科科技有限公司,Z,90,APP,3,38.5,M,汉,4340,4,,MATE,FRIENDS,1,70,四川省,CONSUME,,12,30.560714,104.054605,ANDROID,false,0
 10000,102,三明市,聚春园大酒店,Z,90,XCX,2,28.3,M,汉,122,4,,PARENTS,FRIENDS,1,70,福建省,CONSUME,,12,31.854455894909069,117.135226966759291,ANDROID,,0

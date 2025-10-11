@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,泸州市,广州汤夫人餐饮有限公司,I,54,APP,2,31.7,M,汉,779,2,01,FATHER,FATHER,2,70,四川省,CONSUME,01,,23.005435603805883,113.2835542227903,ANDROID,,0
 100000,105,南通市,上海华淼文化传媒有限公司,R,17,APP,3,35.4,M,汉,70,2,01,FATHER,COLLEAGUE,2,88.723,江苏省,CONSUME,01,,31.233526594290507,121.42652042142558,ANDROID,,0
 100000,102,河源市,房地产销售有限公司,Z,90,APP,3,22.2,M,汉,2304,3,01,FATHER,FRIENDS,2,70,广东省,CONSUME,01,,22.727848,114.25519,ANDROID,,0

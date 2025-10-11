@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,济源市,洛阳轨道交通分局,F,17,APP,4,30.5,M,汉,721,2,01,FATHER,MATE,2,93.19,河南省,CONSUME,02,,35.06907489422855,112.6045698996803,ANDROID,,0
 100000,105,保定市,私营业主,Z,90,XCX,2,32.5,F,汉,4942,2,,MATE,SIBLING,1,95.0,河北省,CONSUME,01,,39.157154011596748,115.79262280449177,IOS,,1
 100000,105,邯郸市,临漳金凤成祥水果店,Z,90,APP,2,31.1,F,汉,633,2,01,MATE,MATE,1,70,河北省,CONSUME,02,,39.0375963857083,117.13658051542575,ANDROID,,0

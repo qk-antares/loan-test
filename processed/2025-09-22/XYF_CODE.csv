@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,102,哈密地区,中国德州亚太集团新疆办事处,Z,90,APP,2,31.4,M,汉,1366,2,,MATE,SIBLING,2,85.081,新疆维吾尔自治区,CONSUME,,12,42.87854846994707,93.45372492344167,ANDROID,false,0
 10000,103,泉州市,私营业主,Z,90,APP,2,41.8,M,汉,4404,2,,MATE,COLLEAGUE,1,96.0,福建省,CONSUME,,12,25.161126704545695,118.08772804880306,ANDROID,,1
 10000,,洛阳市,仁宝电子,Z,90,APP,3,31.8,M,汉,5207,2,,MATE,SIBLING,1,95.417,河南省,CONSUME,,12,31.359078,120.96683,ANDROID,false,0

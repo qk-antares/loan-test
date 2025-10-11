@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,301,北海市,亚信科技,G,13,APP,4,29.4,M,汉,382,2,01,MATE,RELATIVES,2,80.62047,广西壮族自治区,CONSUME,01,,22.57938621889705,113.8899842351906,IOS,,0
 100000,403,淮南市,淮望亿锦超市,H,54,APP,3,44.0,F,汉,974,4,01,FATHER,COLLEAGUE,3,75.1904,安徽省,CONSUME,01,,32.60644590377732,116.92200967763736,ANDROID,,0
 100000,,南阳市,张梦宇个人工作室,Z,90,APP,3,23.2,M,汉,2128,2,01,PARENTS,SIBLING,2,96.2,河南省,CONSUME,01,,32.412906596440759,112.31542894370895,ANDROID,,0

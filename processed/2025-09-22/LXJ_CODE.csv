@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,衡水市,衡水北斗建筑工程有限公司,Z,90,APP,4,28.8,F,汉,6381,2,01,MATE,FATHER,1,72.54,河北省,CONSUME,01,,19.10110473128863,108.65856652679175,ANDROID,,0
 100000,,果洛藏族自治州,果洛州委网信办,G,13,XCX,3,43.4,M,汉,5500,3,01,MATE,FATHER,1,70,青海省,CONSUME,01,,34.46843153211805,100.23874321831597,ANDROID,,0
 100000,102,泰州市,张梦年个人工作室,Z,90,XCX,4,28.7,F,汉,824,2,01,FATHER,FRIENDS,1,84.477,江苏省,CONSUME,01,,33.0977378934506,120.1109784352978,IOS,,0

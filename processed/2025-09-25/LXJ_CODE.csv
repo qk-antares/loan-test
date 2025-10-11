@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,泸州市,少林中武研学基地有限公司,Z,90,APP,3,24.0,M,汉,2312,4,01,FATHER,SIBLING,2,94.29,四川省,CONSUME,01,,34.461409855876599,113.05181452619117,ANDROID,,0
 100000,,宜宾市,蔡华个人工作室,Z,90,XCX,2,36.7,M,汉,4154,2,01,PARENTS,OTHER,1,77.467,四川省,CONSUME,01,,28.051395423458,120.633834843893,ANDROID,false,0
 100000,105,张家界市,止舍梓里度假名宿,Z,90,APP,3,38.0,M,汉,5288,2,01,FATHER,SIBLING,3,79.35,湖南省,CONSUME,01,,29.312316,110.477357,ANDROID,false,0

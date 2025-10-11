@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,贵港市,玉林光大房地产开发有限公司,K,17,APP,4,30.2,M,汉,1645,2,01,MATE,FRIENDS,1,91.893,广西壮族自治区,CONSUME,02,,23.038853268733896,110.00358040503017,ANDROID,,0
 100000,310,遵义市,深圳市安飞自动化设备有限公司,C,24,XCX,3,38.1,M,汉,3450,3,01,MATE,RELATIVES,1,93.498,贵州省,CONSUME,01,,22.767149317033103,113.84444427565208,ANDROID,,0
 100000,102,北京市,北京招商局物业管理有限公司,L,17,APP,4,25.8,M,汉,1248,2,01,MOTHER,RELATIVES,2,70,北京市,CONSUME,01,,39.6917492871373,116.5314147022635,ANDROID,,1

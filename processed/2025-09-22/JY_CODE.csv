@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,清远市,鸿运楼私房菜,Z,90,APP,4,41.8,M,汉,4060,2,01,MATE,FRIENDS,1,100.0,广东省,CONSUME,01,,24.225748750567158,113.68314434260675,ANDROID,,0
 100000,104,无锡市,冒晓亮个人工作室,Z,90,XCX,4,39.4,M,汉,4017,4,01,MATE,FATHER,1,70,江苏省,CONSUME,01,,31.55939228104262,120.29600330114609,ANDROID,,0
 100000,105,兰州市,兰州铁路公安局,Z,90,APP,4,33.7,M,汉,6398,3,01,FATHER,MATE,1,70,甘肃省,CONSUME,01,,36.061504941883828,103.76171357259033,ANDROID,,0

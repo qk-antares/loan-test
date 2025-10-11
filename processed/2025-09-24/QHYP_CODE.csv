@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,辽阳市,博博教育,P,13,APP,3,43.3,F,汉,2208,4,01,MATE,FRIENDS,1,70,辽宁省,CONSUME,01,,41.2568502377597,123.17632098642537,ANDROID,,0
 100000,302,温州市,浙江贝成游乐设备有限公司,C,24,XCX,2,37.9,M,汉,4413,4,,MATE,FRIENDS,1,94.0,浙江省,CONSUME,01,,27.96724506565529,120.61865427901164,IOS,,0
 100000,103,荆州市,早阳肉包,H,54,XCX,2,40.0,M,汉,4678,4,01,SIBLING,SIBLING,1,94.34,湖北,CONSUME,01,,31.504595869111378,119.72626432712196,IOS,,1

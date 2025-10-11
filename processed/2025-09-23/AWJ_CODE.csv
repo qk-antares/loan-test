@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,唐山市,阿信农产品,H,54,APP,3,24.4,M,汉,1240,3,01,PARENTS,FRIENDS,2,70,河北省,CONSUME,01,,39.75741034609977,118.77763845921591,ANDROID,,0
 100000,,红河哈尼族彝族自治州,天泽劳务有限公司,O,17,APP,4,36.1,M,汉,5848,2,01,MATE,FRIENDS,1,70,云南省,CONSUME,01,,23.32093099389896,103.34269177473722,ANDROID,,0
 100000,103,潍坊市,旭东手机大卖场,H,54,APP,4,29.2,F,汉,554,2,01,FATHER,MOTHER,2,86.63894,山东省,CONSUME,02,,36.884087842198997,118.91546055544501,ANDROID,,0

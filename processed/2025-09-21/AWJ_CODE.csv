@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,海口市,中国热带农业科学院,M,11,XCX,4,36.8,M,汉,5553,2,,MATE,FRIENDS,1,88.808,海南省,CONSUME,01,,19.98708964836116,110.3413474019539,ANDROID,,0
 100000,,昆明市,德合基金云南分公司,Z,90,APP,4,29.2,M,白,1283,2,01,FATHER,FATHER,2,97.15,云南省,CONSUME,01,,21.454768668894745,109.14654476440518,ANDROID,,0
 100000,,长治市,咏巷炸鸡,Z,90,APP,2,34.0,M,汉,4733,3,01,MATE,FRIENDS,1,87.917,山西省,CONSUME,01,,36.313585,112.873548,ANDROID,,0

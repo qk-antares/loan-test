@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,105,玉林市,广西强壮牛奶到户有限公司,C,24,APP,2,37.5,M,汉,4426,2,,PARENTS,SIBLING,2,70,广西壮族自治区,CONSUME,,12,22.653052079653098,110.12901554522419,ANDROID,,1
 10000,,达州市,迪亚斯物流公司,F,17,XCX,2,39.3,M,汉,4260,2,,MATE,FRIENDS,1,70,四川省,CONSUME,,12,30.652734764596,104.111198432786,ANDROID,,0
 10000,102,长春市,吉林泰安的士有限责任公司,F,17,APP,4,43.2,M,汉,3743,4,,PARENTS,COLLEAGUE,2,70,吉林省,CONSUME,,12,43.887409,125.330087,ANDROID,false,0

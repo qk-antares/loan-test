@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,104,淮安市,江苏省镇江市京口区学府路兔喜超市,H,54,XCX,2,28.9,M,汉,6671,2,,FATHER,SIBLING,2,70,江苏省,CONSUME,,12,32.178446723090275,119.48443983289931,ANDROID,,0
 10000,102,泉州市,水岸咖啡,I,54,XCX,2,35.8,M,汉,7144,4,,FATHER,RELATIVES,2,84.587,福建省,CONSUME,,12,24.479028752252803,118.03606898771609,ANDROID,,0
 10000,103,金华市,滴滴中国科技有限公司,G,13,APP,3,49.8,M,汉,5727,2,,FATHER,FATHER,1,70,浙江省,CONSUME,,12,29.2814431585262,119.90240390430465,ANDROID,,0

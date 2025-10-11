@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,延边朝鲜族自治州,方娜个人工作室,Z,90,APP,2,25.3,F,朝鲜,3028,4,01,MATE,FATHER,2,70,吉林省,CONSUME,01,,28.595725717553579,120.99287206674798,ANDROID,,0
 100000,,张家界市,湖南省张家界市慈利县融媒体中心,Z,90,APP,4,47.1,M,土家,6400,2,01,MATE,FRIENDS,1,98.8,湖南省,CONSUME,01,,29.44966214766785,111.10796924890004,ANDROID,,0
 100000,,盐城市,王路生个人工作室,Z,90,APP,2,39.7,M,汉,5174,4,01,MATE,FRIENDS,1,97.15,江苏省,CONSUME,01,,32.62866733593719,120.65065126224666,ANDROID,,0

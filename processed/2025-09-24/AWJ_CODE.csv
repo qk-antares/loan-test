@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,南充市,个体工商户,Z,90,APP,3,25.5,M,汉,1219,2,01,MOTHER,FRIENDS,2,70,四川省,CONSUME,01,,31.541457,104.552085,ANDROID,,0
 100000,102,昆明市,云南省铁路总公司,F,17,APP,4,42.4,M,汉,4014,4,01,OTHER,OTHER,1,78.70215,云南省,CONSUME,01,,25.08805781406612,102.66989546468467,ANDROID,,0
 100000,,河源市,罗宝健个人工作室,Z,90,APP,4,38.0,M,汉,6344,4,01,FRIENDS,FRIENDS,1,70,广东省,CONSUME,01,,24.44819157428238,114.9556083787146,ANDROID,,0

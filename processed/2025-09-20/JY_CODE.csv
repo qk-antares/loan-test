@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,吕梁市,山西柳林晋柳能,C,24,APP,2,49.5,M,汉,3744,2,,FRIENDS,MATE,1,70,山西省,CONSUME,02,,37.32827094184028,110.92954644097222,ANDROID,,0
 100000,104,昆明市,晨发宠物用品,C,24,APP,3,35.0,M,汉,6505,4,01,MATE,FRIENDS,1,70,云南省,CONSUME,01,,22.713886678991167,114.3478155909219,ANDROID,,0
 100000,,湖州市,亨通光电,Z,90,APP,4,36.0,M,汉,3801,2,01,MATE,FRIENDS,1,78.0,浙江省,CONSUME,01,,30.939151799560255,120.34066220025245,ANDROID,,0

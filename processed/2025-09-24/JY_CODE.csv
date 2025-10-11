@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,309,江门市,深圳市法本信息技术有限公司,C,24,APP,4,27.6,M,汉,521,3,01,MOTHER,SIBLING,2,70,广东省,CONSUME,01,,23.025889,113.104525,ANDROID,,0
 100000,105,德州市,滨海新区万贯超市,H,54,XCX,2,29.8,F,汉,228,3,01,PARENTS,RELATIVES,1,70,山东省,CONSUME,01,,39.041151445565997,117.67278109101996,ANDROID,,0
 100000,105,台州市,陈思雨个人工作室,G,13,XCX,3,32.1,F,汉,6674,4,01,MATE,RELATIVES,1,84.852,浙江省,CONSUME,01,,3,121.3557484103356,IOS,,0

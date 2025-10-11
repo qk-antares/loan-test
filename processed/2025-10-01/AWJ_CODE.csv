@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,中山市,中山市水利水电勘测设计咨询有限公司,L,17,XCX,3,30.2,M,汉,6123,2,,SIBLING,COLLEAGUE,2,70,广东省,CONSUME,01,,22.437032335069443,113.3308132595486,ANDROID,,0
 100000,,阜阳市,佳宇装饰,Z,90,APP,2,25.5,M,汉,1372,2,01,MATE,FRIENDS,1,96.66,安徽省,CONSUME,01,,33.07197707631058,115.63942145617519,ANDROID,,0
 100000,102,商丘市,申通快递,F,17,APP,2,38.2,M,汉,4038,4,01,MATE,COLLEAGUE,1,70,河南省,CONSUME,01,,31.811045,120.361928,ANDROID,,0

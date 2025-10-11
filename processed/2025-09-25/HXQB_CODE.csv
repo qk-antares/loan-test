@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,德州市,武城县综合行政执法局,Z,90,APP,3,35.8,M,汉,4292,2,01,MOTHER,COLLEAGUE,2,70,山东省,CONSUME,01,,37.221043294270835,116.11392903645833,ANDROID,,0
 100000,,池州市,朱敏个人工作室,Z,90,APP,2,38.7,M,汉,5365,3,01,SIBLING,SIBLING,1,70,安徽省,CONSUME,01,,30.645098,117.866176,ANDROID,,0
 100000,103,无锡市,张家港保税区荣优纺织品有限公司,C,24,APP,3,34.4,M,汉,433,3,01,FRIENDS,MATE,1,91.661,江苏省,CONSUME,02,,31.86666731529154,120.416151821243,ANDROID,,0

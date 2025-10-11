@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,石家庄市,河北朴薪文化传媒有限公司,R,17,XCX,4,27.8,F,汉,6875,2,01,FATHER,MOTHER,2,70,河北省,CONSUME,01,,38.042497,114.507739,ANDROID,,0
 100000,,永州市,Delicacy美妆,Z,90,APP,2,23.9,M,瑶,3279,2,01,PARENTS,SIBLING,2,93.33,湖南省,CONSUME,01,,29.312395152792968,120.1072059661979,ANDROID,,0
 100000,,荆州市,洪湖融兴村镇银行,Z,90,APP,4,26.8,M,汉,7132,2,01,FATHER,FRIENDS,2,98.1,湖北省,CONSUME,01,,29.828314580473824,113.50064001390182,ANDROID,,0

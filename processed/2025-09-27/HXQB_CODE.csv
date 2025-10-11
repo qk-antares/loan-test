@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,厦门市,住建和交通局,Z,90,APP,4,25.2,M,汉,1240,4,01,PARENTS,PARENTS,2,70,福建省,CONSUME,01,,24.763640755392559,118.15228062381175,ANDROID,,0
 100000,102,上海市,通力电梯,H,54,XCX,3,26.3,M,汉,266,2,01,PARENTS,FRIENDS,2,70,上海市,CONSUME,01,,31.3801553396772,121.27259505835203,ANDROID,,0
 100000,102,孝感地区,武汉翔翊医疗器械有限公司,H,54,APP,3,40.0,M,汉,4447,4,01,MATE,FRIENDS,1,77.35239,湖北省,CONSUME,01,,30.916510784125653,113.71836403142679,ANDROID,,0

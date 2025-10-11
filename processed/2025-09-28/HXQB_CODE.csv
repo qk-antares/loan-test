@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,104,江门市,江门合宏4s店,E,24,XCX,4,31.0,M,汉,5966,4,,FATHER,SIBLING,2,81.161,广东省,CONSUME,01,,22.597215,113.091385,IOS,,0
 100000,,温州市,杭州旭润斋数字科技有限公司,Z,90,APP,3,32.3,M,汉,5465,4,01,MATE,FRIENDS,1,70,浙江省,CONSUME,01,,30.21394829644097,120.24421929253472,ANDROID,,0
 100000,105,泰安市,山东和达矿山技术服务有限公司,H,54,APP,3,51.6,M,汉,2668,3,01,MATE,COLLEAGUE,2,93.043526,山东省,CONSUME,01,,35.89492656686038,117.8031639357636,ANDROID,,0

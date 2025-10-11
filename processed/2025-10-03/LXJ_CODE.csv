@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,宁德市,璞玉空间,Z,90,APP,2,30.8,F,汉,5743,4,01,MATE,FATHER,1,96.2,福建省,CONSUME,01,,31.90483099214537,120.2498171030117,ANDROID,,0
 100000,,汕尾市,广东丽达纺织有限公司,C,24,XCX,3,31.0,M,汉,1458,2,01,PARENTS,FRIENDS,2,70,广东省,CONSUME,01,,23.32214983941662,116.29105120482798,ANDROID,,0
 100000,105,南通市,江苏省如皋市邮政局城中投递部,Z,90,APP,3,27.6,M,汉,1390,4,01,PARENTS,FRIENDS,2,70,江苏省,CONSUME,01,,32.355149,120.610358,ANDROID,false,0

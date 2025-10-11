@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,104,吕梁市,运城学院,,,APP,4,24.9,F,汉,808,4,01,PARENTS,RELATIVES,2,70,山西省,CONSUME,01,,35.12765767989457,110.93611928810948,ANDROID,,0
 100000,,贵阳市,贵州黔厨鲜商贸有限责任公司,,,APP,2,27.2,F,布依,511,4,01,SIBLING,SIBLING,1,70,贵州省,CONSUME,01,,26.494108,106.676067,ANDROID,,0
 100000,,马鞍山市,南京智萃信息技术有限公司,,,APP,3,32.0,M,汉,5278,4,01,FRIENDS,FATHER,2,70,安徽省,CONSUME,01,,40.396816,116.501461,ANDROID,,0

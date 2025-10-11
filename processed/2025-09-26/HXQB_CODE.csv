@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,104,滁州市,华铮纸业有限公司,C,24,APP,2,42.5,M,汉,4138,2,01,MATE,PARENTS,1,81.438,安徽省,CONSUME,01,,30.993533112732324,121.51380323522014,ANDROID,,0
 100000,,绍兴市,上海康克仕半导体科技有限公司绍兴分公司,G,13,APP,3,28.9,M,汉,586,2,01,MOTHER,MATE,2,70,浙江省,CONSUME,01,,29.994176,120.667762,ANDROID,,0
 100000,102,广元市,广元市大强机械化工程有限责任公司,E,24,APP,3,38.7,F,汉,4432,3,01,PARENTS,FRIENDS,1,70,四川省,CONSUME,01,,32.44713419178087,105.83860669132547,ANDROID,,0

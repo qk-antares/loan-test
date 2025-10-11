@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,邵阳市,广州车格仕汽车用品有限公司,,,APP,2,23.6,M,汉,1610,2,01,PARENTS,FRIENDS,2,70,湖南省,CONSUME,01,,23.196248130294355,113.3532879322253,ANDROID,,0
 100000,,临沧市,耿马忠成电子商务屋,,,XCX,3,24.4,M,傣,1238,4,01,FATHER,SIBLING,2,70,云南省,CONSUME,01,,23.553138292100694,99.40721788194445,ANDROID,,0
 100000,,衢州市,九月古机械设备租赁商行,,,APP,2,45.0,M,汉,5819,4,01,MATE,FRIENDS,1,70,浙江省,CONSUME,01,,29.146805752851138,118.42948463928454,ANDROID,,0

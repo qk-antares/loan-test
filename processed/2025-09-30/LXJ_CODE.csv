@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,乐山市,延长石油科研中心,Z,90,APP,2,53.8,F,汉,878,2,01,MATE,COLLEAGUE,1,89.16,四川省,CONSUME,01,,28.927543453176147,103.4839846264593,ANDROID,,0
 100000,103,玉林市,南宁东运制版有限公司,C,24,APP,2,37.9,M,汉,5408,2,01,FATHER,MOTHER,1,93.659,广西壮族自治区,CONSUME,02,,22.611603,110.18103,ANDROID,false,0
 100000,104,信阳市,贵州钰祥矿业有限公司,C,24,APP,2,33.6,M,汉,138,4,01,FATHER,COLLEAGUE,1,70,河南省,CONSUME,01,,27.532963,106.632283,ANDROID,false,0

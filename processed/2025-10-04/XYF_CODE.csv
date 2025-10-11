@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,105,济源市,华北瑞达油气工程技术服务有限责任公司,C,24,APP,3,31.4,M,汉,449,2,,FATHER,FRIENDS,2,70,河南省,CONSUME,,12,41.79316615191547,84.2726269524408,ANDROID,false,0
 10000,,惠州市,黄少雄个人工作室,Z,90,XCX,2,32.4,M,汉,5673,2,,MATE,FRIENDS,1,70,广东省,CONSUME,,12,23.019231,114.084133,ANDROID,false,0
 10000,103,保定市,滴滴出行,H,54,XCX,3,29.4,M,汉,175,2,,MATE,FRIENDS,1,70,河北省,CONSUME,,12,38.33945990668403,115.18011311848959,ANDROID,,0

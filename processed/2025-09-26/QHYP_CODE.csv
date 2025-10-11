@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,403,宜宾市,周涛个人工作室,Z,90,APP,2,42.5,M,汉,4726,3,01,MATE,FRIENDS,1,91.129,四川省,CONSUME,01,,28.779954227271476,104.62313958897573,ANDROID,,0
 100000,102,黄冈市,湖北优越运输有限公司,F,17,XCX,2,41.6,F,汉,3095,4,01,PARENTS,FRIENDS,1,70,湖北省,CONSUME,01,,30.621467438564698,115.01273487646881,ANDROID,,0
 100000,103,淮安市,丹阳市宇奇车辆配件有限公司,Z,90,APP,3,30.9,M,汉,1225,3,01,FATHER,MOTHER,2,70,江苏省,CONSUME,01,,32.09228734851716,119.86127892952097,ANDROID,,0

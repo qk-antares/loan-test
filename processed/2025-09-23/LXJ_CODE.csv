@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,307,天津市,中国联通,G,13,XCX,3,40.7,M,汉,3274,2,,PARENTS,COLLEAGUE,1,70,天津市,CONSUME,01,,39.11697564019097,117.15533474392362,ANDROID,false,0
 100000,105,南平市,福建省万亿保安服务有限公司福州分公司,O,17,APP,3,37.3,M,汉,5074,2,01,MATE,OTHER,1,70,福建省,CONSUME,01,,26.072658,119.246885,ANDROID,false,0
 100000,,毕节市,桔子花开,Z,90,APP,2,23.3,F,汉,2602,4,01,MATE,FRIENDS,1,100.0,贵州省,CONSUME,01,,29.893770140910129,120.16604048555446,ANDROID,,0

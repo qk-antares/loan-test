@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 ,,连云港市,,,,,,,,,,,,,,,,江苏省,,,,,,,,0
 ,,汕尾市,,,,,,,,,,,,,,,,广东省,,,,,,,,0
 ,,泉州市,,,,,,,,,,,,,,,,福建省,,,,,,,,0

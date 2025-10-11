@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,六安市,王氏兄弟农庄,I,54,APP,2,34.6,M,汉,4368,3,01,MATE,FRIENDS,1,90.209,安徽省,CONSUME,01,,31.76952206165344,116.72195995675237,ANDROID,,0
 100000,403,济源市,贸联电子有限公司,G,13,APP,2,35.2,M,汉,7028,2,01,MATE,SIBLING,1,90.525,河南省,CONSUME,01,,31.374001809622557,121.03782855542542,ANDROID,,1
 100000,105,南通市,上海宏大机动车驾驶员培训有限公司,P,13,APP,2,39.5,M,汉,4342,4,01,MATE,SIBLING,1,89.17,江苏省,CONSUME,02,,32.00445795350744,120.99591211421444,ANDROID,,0

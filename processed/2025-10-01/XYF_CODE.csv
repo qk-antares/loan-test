@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,,南宁市,亨通包装材料有限公司,Z,90,APP,2,34.0,M,壮,5217,2,,FATHER,SIBLING,2,81.588,广西壮族自治区,CONSUME,,12,22.42708,112.725886,ANDROID,false,0
 10000,102,渭南市,孟慧芳个人工作室,Z,90,XCX,2,28.6,F,汉,2676,4,,CHILDREN,FRIENDS,1,70,陕西省,CONSUME,,12,34.1696234366985,108.9535200617097,ANDROID,,0
 10000,103,绵阳市,成都柏鑫木业有限公司,C,24,APP,2,46.5,M,汉,6085,2,,PARENTS,FRIENDS,2,70,四川省,CONSUME,,12,30.808124186197915,104.00653049045138,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,长春市,町洋机电中国有限,Z,90,APP,3,33.7,F,汉,5506,2,01,PARENTS,SIBLING,1,70,吉林省,CONSUME,01,,31.238747,121.059773,ANDROID,,0
 100000,,南充市,上海祐瑾网络科技有限公司,C,24,XCX,3,34.2,M,汉,4569,4,01,MATE,FRIENDS,2,70,四川省,CONSUME,01,,31.098736873151663,121.27134596454039,ANDROID,,0
 100000,,来宾市,柳州市超恒体育,Z,90,APP,4,22.1,M,壮,2127,2,01,FATHER,FATHER,2,95.76,广西壮族自治区,CONSUME,01,,23.829696991712319,108.94542407538546,ANDROID,,0

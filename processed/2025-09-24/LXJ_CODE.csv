@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,咸宁市,自由职业,Z,90,APP,3,45.7,F,汉,1033,4,01,FATHER,OTHER,2,70,湖北省,CONSUME,01,,29.562499,113.722194,ANDROID,false,0
 100000,,黄石市,黄石沪士电子有限公司,Z,90,APP,3,24.0,M,汉,2215,2,01,FATHER,FATHER,2,97.5,湖北省,CONSUME,01,,30.09491954085067,114.97993145416094,ANDROID,,0
 100000,,张掖市,张掖市第二人民医院,Q,11,APP,4,31.0,M,汉,5801,4,01,MOTHER,COLLEAGUE,2,77.429,甘肃省,CONSUME,01,,38.923733,100.455977,ANDROID,false,0

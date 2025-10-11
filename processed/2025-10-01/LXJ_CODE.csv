@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,阜阳市,佳宇装饰,Z,90,APP,2,25.5,M,汉,1372,2,01,MATE,FRIENDS,1,96.66,安徽省,CONSUME,01,,33.07197707631058,115.63942145617519,ANDROID,,0
 100000,,东莞市,陈嘉裕个人工作室,Z,90,APP,4,22.8,M,满,2381,2,01,FATHER,FATHER,2,94.29,广东省,CONSUME,01,,22.913678045074986,113.62705504488777,ANDROID,,0
 100000,,沈阳市,沈阳市仁济医院,Z,90,APP,4,29.9,F,汉,7048,2,01,MATE,MOTHER,1,89.16634,辽宁省,CONSUME,01,,41.821804,123.69855,ANDROID,false,0

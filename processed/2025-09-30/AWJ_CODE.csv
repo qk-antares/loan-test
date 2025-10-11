@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,301,宿迁市,广州市依棵服饰有限公司,C,24,APP,3,46.1,M,汉,502,3,,MATE,COLLEAGUE,1,100.0,江苏省,CONSUME,02,,22.985578131067567,113.362205869579,ANDROID,,0
 100000,105,资阳市,上海全筑装饰公司,E,24,APP,2,32.9,M,汉,5955,4,01,FRIENDS,FRIENDS,2,70,四川省,CONSUME,01,,30.71029622036852,103.85238844368893,ANDROID,,0
 100000,104,济宁市,日照钢铁公司,C,24,XCX,3,37.1,M,汉,3781,3,,COLLEAGUE,COLLEAGUE,1,70,山东省,CONSUME,01,,35.17032250657137,119.36523021134511,ANDROID,,0

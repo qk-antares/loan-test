@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,105,新乡市,文文化妆品有限公司,C,24,APP,3,29.6,F,汉,160,2,,SIBLING,MOTHER,2,70,河南省,CONSUME,,12,31.4564085240058,121.36483868763465,ANDROID,false,0
 10000,,益阳市,华天酒店,Z,90,APP,2,27.1,M,汉,606,4,,PARENTS,MATE,1,85.356,湖南省,CONSUME,,12,28.231065243819700,112.915709010086758,ANDROID,false,0
 10000,,漳州市,啊玲四果汤,H,54,APP,4,27.8,M,汉,667,4,,FATHER,FRIENDS,1,70,福建省,CONSUME,,12,24.122176,117.845559,ANDROID,false,1

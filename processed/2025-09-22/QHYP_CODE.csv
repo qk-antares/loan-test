@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,普洱市,周朝芬个人工作室,H,54,APP,2,47.2,F,汉,1391,3,01,MATE,FRIENDS,1,80.816,云南省,CONSUME,01,,23.423486359487155,100.40954522635036,ANDROID,,1
 100000,102,邢台市,河北红星汽车制造有限公司,C,24,XCX,4,44.9,F,汉,4681,2,,PARENTS,SIBLING,2,91.099,河北省,CONSUME,01,,37.08796309440409,114.48079725147916,ANDROID,,0
 100000,105,恩施土家族苗族自治州,伊美薄膜,H,54,APP,2,44.0,F,汉,1993,2,01,FATHER,RELATIVES,1,84.785,湖北省,CONSUME,02,,29.338144230965658,120.05267593011787,ANDROID,,0

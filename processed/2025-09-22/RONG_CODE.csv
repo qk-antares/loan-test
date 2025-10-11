@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,104,宿迁市,江苏卫国教育咨询有限公司,,,APP,2,39.8,M,汉,4606,2,,MATE,FRIENDS,1,70,江苏省,CONSUME,01,,33.454804,118.224306,ANDROID,,0
 100000,102,泰州市,张梦年个人工作室,,,XCX,4,28.7,F,汉,824,2,01,FATHER,FRIENDS,1,84.477,江苏省,CONSUME,01,,33.0977378934506,120.1109784352978,IOS,,0
 100000,,吉安市,惠福商贸有限公司,,,XCX,4,33.0,M,汉,7277,3,01,FATHER,MATE,1,89.742,江西省,CONSUME,01,,23.230890299479167,113.19685384114584,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,102,南京市,江苏领跑者企业管理咨询有限公司,L,17,APP,4,54.1,M,汉,3318,3,,MATE,SIBLING,1,85.051,江苏省,CONSUME,,12,32.009562304781479,118.77919814814173,ANDROID,false,0
 10000,,昆明市,昆明市兴锦人力资源服务有限公司,Z,90,APP,3,42.7,F,汉,4180,4,,PARENTS,FRIENDS,1,70,云南省,CONSUME,,12,25.066938,102.669908,ANDROID,false,0
 10000,103,汕尾市,言成电子科技有限公司,G,13,APP,2,33.9,M,汉,6199,2,,MOTHER,FRIENDS,1,88.592,广东省,CONSUME,,12,23.024766,114.085658,ANDROID,false,0

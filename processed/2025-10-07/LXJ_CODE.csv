@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,102,商丘市,陕西省硕鑫鸿装饰有限公司,E,24,APP,2,31.9,M,汉,5571,3,01,PARENTS,FRIENDS,1,70,河南省,CONSUME,01,,35.190611030689627,107.91606082968497,ANDROID,false,0
 100000,102,黄冈市,京东快递,F,17,APP,2,29.6,M,汉,2003,2,01,FATHER,MOTHER,2,70,湖北省,CONSUME,02,,30.731657,114.585706,ANDROID,false,0
 100000,307,莆田市,紫龙珠宝有限公司,C,24,APP,2,38.9,M,汉,4127,2,01,PARENTS,SIBLING,1,70,福建省,CONSUME,02,,25.23697980383366,118.86490817457724,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,连云港市,上海贯展医疗器械有限公司,H,54,XCX,2,35.4,F,汉,5974,4,01,PARENTS,FRIENDS,2,70,江苏省,CONSUME,01,,31.821081433861296,120.00524309740684,ANDROID,,0
 100000,102,烟台市,无限度（北京）文化传播有限公司,R,17,XCX,4,43.6,M,汉,5292,2,01,MOTHER,COLLEAGUE,1,70,山东省,CONSUME,01,,39.96863362114936,116.55900000452341,IOS,,1
 100000,103,苏州市,苏州爱博展示器材有限公司,R,17,APP,4,46.7,M,汉,2002,4,01,FRIENDS,FRIENDS,1,86.702,江苏省,CONSUME,01,,31.278245935485879,120.6472366229692,ANDROID,,1

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,西安市,西安银行股份有限公司,,,APP,4,32.7,M,汉,5532,4,01,MOTHER,FRIENDS,1,70,陕西省,CONSUME,01,,34.315087,108.735781,ANDROID,,0
 100000,105,安庆市,上海互诺信息技术有限公司,,,APP,4,32.3,M,汉,5233,2,01,PARENTS,FRIENDS,2,70,安徽省,CONSUME,01,,31.394331486408505,121.36140026561213,ANDROID,,0
 100000,,揭阳市,中软国际科技技术服务有限公司,,,APP,3,24.9,M,汉,1084,2,01,FRIENDS,FRIENDS,2,87.027,广东省,CONSUME,01,,22.878723,113.918737,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,恩平市,奥 越电子,,,APP,4,30.3,F,汉,157,3,01,RELATIVES,FRIENDS,1,70,广东省,CONSUME,01,,22.180404,112.308851,ANDROID,,0
 100000,103,恩施土家族苗族自治州,钟尚利个人工作室,,,XCX,3,41.8,M,汉,5760,2,01,PARENTS,COLLEAGUE,2,70,湖北省,CONSUME,01,,29.687811632501267,109.16067299704514,ANDROID,,0
 100000,403,安顺市,李冰雪个人工作室,,,APP,2,27.7,F,汉,1024,4,01,COLLEAGUE,RELATIVES,1,92.021,贵州省,CONSUME,01,,26.493069,106.671809,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,临沂市,北京东城国际关系学院招待所,I,54,APP,4,25.2,M,汉,2045,4,01,PARENTS,FRIENDS,2,82.283,山东省,CONSUME,01,,32.07202249633609,118.665895496824,ANDROID,,0
 100000,,滁州市,济邦科技,Z,90,APP,2,55.2,M,汉,3197,2,01,MATE,CHILDREN,1,93.33,安徽省,CONSUME,01,,32.79252841739696,118.01036652936037,ANDROID,,0
 100000,104,太原市,山西地宝能源有限公司,Z,90,APP,4,36.1,M,汉,3943,3,01,MATE,FRIENDS,1,70,山西省,CONSUME,01,,37.85414201364568,112.61960201650936,ANDROID,,0

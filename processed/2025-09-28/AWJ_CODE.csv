@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,盐城市,上海文博包装装潢印刷有限公司,E,24,XCX,3,26.6,M,汉,1050,4,01,FATHER,FRIENDS,2,87.721,江苏省,CONSUME,01,,30.932853649109629,121.47226416435798,ANDROID,,1
 100000,,眉山市,四川澳欣龙建设咨询有限责任公司,Z,90,APP,3,43.2,F,汉,3260,4,01,MATE,SIBLING,1,96.66,四川省,CONSUME,01,,30.619602,104.038162,ANDROID,,0
 100000,103,无锡市,建得五星电动车,C,24,APP,2,48.5,F,汉,4870,4,01,MATE,COLLEAGUE,1,87.876,江苏省,CONSUME,01,,31.923471856820098,120.04684110869609,ANDROID,,0

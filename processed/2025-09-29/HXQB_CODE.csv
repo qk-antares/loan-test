@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,,佛山市,盈汇私房烘焙店,Z,90,XCX,3,39.5,F,汉,3485,4,01,PARENTS,FRIENDS,1,70,广东省,CONSUME,01,,22.76106370298714,113.17775292034216,ANDROID,,0
 100000,105,商丘市,李彩霞个人工作室,Z,90,APP,4,46.7,F,汉,3669,3,01,SIBLING,SIBLING,1,70,河南省,CONSUME,02,,34.68638139807312,113.63859157064015,ANDROID,,0
 100000,105,芜湖市,北京优尼福莱科技有限公司,G,13,APP,4,37.5,F,汉,4145,3,01,SIBLING,SIBLING,2,70,安徽省,CONSUME,02,,40.15693161529595,116.5087600592638,ANDROID,,0

@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,大连市,大连华波科贸有限公司,H,54,APP,4,44.4,M,汉,3745,4,01,MATE,FRIENDS,1,70,辽宁省,CONSUME,01,,38.92274,121.485173,ANDROID,false,0
 100000,,温州市,杭州臻隆温州分公司,H,54,APP,4,44.1,M,汉,4723,3,01,MOTHER,FRIENDS,3,70,浙江省,CONSUME,01,,27.981334,120.708746,ANDROID,false,0
 100000,,重庆市,云阳县财政局,S,11,XCX,4,37.1,M,汉,4377,3,,FATHER,COLLEAGUE,2,70,重庆市,CONSUME,01,,30.93552788628472,108.69559868706597,ANDROID,false,0

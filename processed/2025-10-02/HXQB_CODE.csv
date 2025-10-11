@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,103,延边朝鲜族自治州,松柏家庭农场,Z,90,APP,3,37.3,F,汉,4205,3,01,RELATIVES,MOTHER,1,70,吉林省,CONSUME,01,,43.368117,128.229087,ANDROID,,0
 100000,105,陇南市,甘肃联谊股份有限公司,H,54,APP,2,35.7,F,汉,41,2,01,MATE,FATHER,1,78.356125,甘肃省,CONSUME,01,,33.748915332014728,105.7413271063163,ANDROID,,0
 100000,102,亳州市,徐飞个人工作室,Z,90,APP,2,38.4,M,汉,5951,2,01,MATE,FRIENDS,1,83.456,安徽省,CONSUME,01,,33.75899935889054,115.6709198976495,ANDROID,,0

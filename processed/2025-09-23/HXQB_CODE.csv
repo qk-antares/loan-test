@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,苏州市,铭皓击剑,H,54,XCX,4,28.6,M,汉,1249,4,,FRIENDS,FATHER,2,70,江苏省,CONSUME,01,,31.426660924052098,121.13961220394408,ANDROID,,0
 100000,102,成都市,成华区雀哈哈街边老火锅,I,54,APP,3,36.7,M,汉,5187,4,,FATHER,SIBLING,1,87.095,四川省,CONSUME,01,,30.635425000630378,104.05119900751603,ANDROID,,0
 100000,105,郑州市,北京民海生物科技有限公司,Z,90,APP,3,46.0,M,汉,2684,3,01,PARENTS,FRIENDS,1,70,河南省,CONSUME,01,,39.676813823919307,116.31399590893173,ANDROID,,1

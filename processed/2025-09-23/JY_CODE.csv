@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 100000,105,昆明市,创语公司,Z,90,APP,2,33.9,M,回,7102,3,01,MATE,COLLEAGUE,1,88.374,云南省,CONSUME,02,,21.234299,101.686672,ANDROID,,0
 100000,103,遂宁市,成都峻拓皓劳务有限公司,L,17,XCX,3,32.7,M,汉,5052,3,01,MATE,SIBLING,1,70,四川省,CONSUME,01,,30.38367377387153,103.8692591688368,ANDROID,,0
 100000,,大理白族自治州,硕通机械租赁有限责任公司,L,17,APP,2,36.0,M,彝,5940,4,01,PARENTS,FRIENDS,1,70,云南省,CONSUME,01,,25.773628,101.274961,ANDROID,,0

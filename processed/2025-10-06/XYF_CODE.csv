@@ -1,3 +1,4 @@
+amount,bankCardInfo.bankCode,city,companyInfo.companyName,companyInfo.industry,companyInfo.occupation,customerSource,degree,idInfo.birthDate,idInfo.gender,idInfo.nation,idInfo.validityDate,income,jobFunctions,linkmanList.0.relationship,linkmanList.1.relationship,maritalStatus,pictureInfo.0.faceScore,province,purpose,resideFunctions,term,deviceInfo.gpsLatitude,deviceInfo.gpsLongitude,deviceInfo.osType,deviceInfo.isCrossDomain,label
 10000,102,遵义市,余庆县千顺汽车租赁服务部,L,17,APP,2,40.4,M,汉,3630.0,3,,MATE,MOTHER,1,70,贵州省,CONSUME,,12,30.631292046440972,117.8766370985243,ANDROID,,0
 10000,102,宿州市,城区中队,S,11,APP,4,27.5,M,汉,2767.0,2,,MOTHER,COLLEAGUE,2,86.792,安徽省,CONSUME,,12,34.17077117551916,116.94228880844224,ANDROID,false,0
 10000,103,成都市,捷普科技有限公司,G,13,APP,4,34.2,M,汉,4605.0,2,,PARENTS,COLLEAGUE,1,92.508,四川省,CONSUME,,12,30.592452722633227,103.80763485578759,ANDROID,false,0
