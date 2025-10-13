@@ -33,9 +33,7 @@ class LoanDataProcessor:
         # 目前暂定使用以下特征（注释的不使用）
         self.feature_columns = [
             'amount',
-            # 'bankCardInfo.bankName', # 直接使用下面的bankCode即可
             'bankCardInfo.bankCode',
-            # 'bankCardInfo.cardType', # 所有样本都一样，无意义
             'city',
             'companyInfo.companyName',
             'companyInfo.industry',
