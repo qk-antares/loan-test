@@ -697,12 +697,13 @@ class DataCheck:
             return None
 
 
-    def data_compliance_check(self, df: pd.DataFrame):
+    def data_compliance_check(self, df: pd.DataFrame, unused_time_series_data: Dict[str, pd.DataFrame]):
         """
         条件筛选分析报告
         
         参数:
         df: 数据框
+        unused_time_series_data: 时间序列数据字典
         """
         print("=" * 80)
         print("条件筛选报告 - 地理位置模式: GPS")
@@ -735,6 +736,9 @@ class DataCheck:
         # 初始化统计字典
         failure_stats = {}
         
+        # 新增：用于存储未通过筛选但label为1的数据
+        failed_but_label1_data = []
+        
         def add_failure_stat(partner_code, failure_type, reason=""):
             """添加失败统计"""
             key = f"{partner_code}_{failure_type}"
@@ -746,7 +750,7 @@ class DataCheck:
                     'count': 0
                 }
             failure_stats[key]['count'] += 1
-        
+
         for index, row in df_filtered.iterrows():
             # 提前检查所有必需字段是否为空
             missing_fields = []
@@ -760,6 +764,16 @@ class DataCheck:
                 print(f"行 {index}: 缺失字段 {missing_fields}")
                 self.missing_data.append(row)
                 add_failure_stat(row.get('partner_code'), '缺失字段', f"缺失字段: {missing_fields}")
+                
+                # 检查是否为label=1的数据
+                if row.get('label') == 1:
+                    failed_but_label1_data.append({
+                        'row_index': index,
+                        'partner_code': row.get('partner_code'),
+                        'failure_type': '缺失字段',
+                        'reason': f"缺失字段: {missing_fields}",
+                        'date': row.get('date') if 'date' in row else '未知日期'
+                    })
                 continue
 
             partner_code = row.get('partner_code')
@@ -771,241 +785,272 @@ class DataCheck:
             
             company = row.get('companyInfo.companyName')
             age = row.get('idInfo.birthDate')
-            date = row.get('idInfo.validityDate')
+            date_val = row.get('idInfo.validityDate')
             degree = row.get('degree')
+            
+            # 获取日期信息
+            record_date = row.get('date', '未知日期')
+
+            is_valid = True
+            failure_type = ""
+            failure_reason = ""
 
             if partner_code == "AWJ_CODE":
                 if age < 22 or age > 49:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-49范围内")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-49范围内"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
-                
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
+
                 # 检查公司名称是否包含禁止关键词
-                if company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '公司名称不符合', f"公司名称包含禁止关键词")
-                    continue
+                if is_valid and company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
+                    is_valid = False
+                    failure_type = '公司名称不符合'
+                    failure_reason = "公司名称包含禁止关键词"
                     
             elif partner_code == "HXH_CODE":
                 if age < 22 or age > 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-55范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
 
             elif partner_code == "NWD_CODE":
                 if age < 23 or age > 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-55范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 7:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于7天")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在23-55范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 7:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于7天"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
                     
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
+                        
             elif partner_code == "LXJ_CODE":
                 if age < 23 or age > 50:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-50范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 30:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在23-50范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 30:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于30天"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
 
             elif partner_code == "XYF_CODE":
                 if age < 23 or age > 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-55范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 90:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于90天")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在23-55范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 90:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于90天"
                 elif degree == 'JUNIOR':
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '学历不符合', "学历为初中不符合要求")
-                    continue
+                    is_valid = False
+                    failure_type = '学历不符合'
+                    failure_reason = "学历为初中不符合要求"
 
             elif partner_code == "RONG_CODE":
                 if age < 22 or age > 50:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-50范围内")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-50范围内"
                 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
                 
                 # 检查公司名称是否包含禁止关键词
-                if company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '公司名称不符合', f"公司名称包含禁止关键词")
-                    continue
+                if is_valid and company and any(keyword in str(company) for keyword in rules.get('company_keywords', [])):
+                    is_valid = False
+                    failure_type = '公司名称不符合'
+                    failure_reason = "公司名称包含禁止关键词"
 
             elif partner_code == "XY_CODE":
-                if not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 30:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
-                    continue
-                    
+                if not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 30:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于30天"
+                        
             elif partner_code == "JY_CODE":
                 if age < 23 or age > 50:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在23-50范围内")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在23-50范围内"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
 
             elif partner_code == "FLXD_CODE":
                 if age < 22 or age > 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 90:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于90天")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-55范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 90:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于90天"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
 
             elif partner_code == "FQY_CODE":
                 if age < 22 or age >= 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-54范围内")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-54范围内"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
 
             elif partner_code == "BBS_CODE":
                 if age < 22 or age > 55:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-55范围内")
-                    continue
-                elif not date:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期缺失', "有效期字段为空")
-                    continue
-                elif date < 30:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '有效期不足', f"有效期{date}天小于30天")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-55范围内"
+                elif not date_val:
+                    is_valid = False
+                    failure_type = '有效期缺失'
+                    failure_reason = "有效期字段为空"
+                elif date_val < 30:
+                    is_valid = False
+                    failure_type = '有效期不足'
+                    failure_reason = f"有效期{date_val}天小于30天"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
 
             elif partner_code == "TMDP_CODE":
                 if age < 22 or age > 48:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}不在22-48范围内")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}不在22-48范围内"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
-                
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
-                        
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
+                            
             elif partner_code == "HH_CODE":
                 if age < 22:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '年龄不符合', f"年龄{age}小于22岁")
-                    continue
+                    is_valid = False
+                    failure_type = '年龄不符合'
+                    failure_reason = f"年龄{age}小于22岁"
 
                 # GPS地理位置检查
-                location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
-                location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                if is_valid:
+                    location_valid = not any(keyword in str(province) for keyword in rules.get('province', []))
+                    location_valid = location_valid and not any(keyword in str(city) for keyword in rules.get('city', []))
+                    
+                    if not location_valid:
+                        is_valid = False
+                        failure_type = '地理位置不符合'
+                        failure_reason = "省份/城市包含禁止关键词"
+
+            if not is_valid:
+                self.invalid_data.append(row)
+                add_failure_stat(partner_code, failure_type, failure_reason)
                 
-                if not location_valid:
-                    self.invalid_data.append(row)
-                    add_failure_stat(partner_code, '地理位置不符合', f"省份/城市包含禁止关键词")
-                    continue
-        
+                # 检查是否为label=1的数据
+                if row.get('label') == 1:
+                    failed_but_label1_data.append({
+                        'row_index': index,
+                        'partner_code': partner_code,
+                        'failure_type': failure_type,
+                        'reason': failure_reason,
+                        'date': record_date
+                    })
+
         # 输出总体统计
         print(f"\n{len(df_filtered)} 条数据中:")
         print("筛选未通过数据条数:", len(self.invalid_data)) 
@@ -1036,36 +1081,116 @@ class DataCheck:
         else:
             print("没有失败数据")
         
-        print()
+        # 新增：统计并输出未通过筛选但label为1的数据
+        self._export_failed_label1_statistics(failed_but_label1_data, unused_time_series_data)
+
+    def _export_failed_label1_statistics(self, failed_but_label1_data: list[dict], time_series_data: Dict[str, pd.DataFrame]):
+        """
+        统计并输出未通过筛选但label为1的数据
+        
+        参数:
+        failed_but_label1_data: 未通过筛选但label为1的数据列表
+        time_series_data: 时间序列数据字典
+        """
+        print("\n" + "=" * 80)
+        print("未通过筛选但label=1的数据统计")
+        print("=" * 80)
+        
+        # 按日期和合作方统计
+        stats_by_date_partner = {}
+        
+        for item in failed_but_label1_data:
+            date = item['date']
+            partner_code = item['partner_code']
+            
+            if date not in stats_by_date_partner:
+                stats_by_date_partner[date] = {}
+            
+            if partner_code not in stats_by_date_partner[date]:
+                stats_by_date_partner[date][partner_code] = 0
+            
+            stats_by_date_partner[date][partner_code] += 1
+        
+        # 输出到控制台
+        total_failed_label1 = len(failed_but_label1_data)
+        print(f"总共 {total_failed_label1} 条未通过筛选但label=1的数据")
+        
+        # 按日期排序输出
+        sorted_dates = sorted(stats_by_date_partner.keys())
+        for date in sorted_dates:
+            print(f"\n日期: {date}")
+            print("-" * 30)
+            date_stats = stats_by_date_partner[date]
+            for partner_code, count in sorted(date_stats.items()):
+                print(f"  {partner_code}: {count} 条")
+        
+        # 输出到txt文件
+        output_file = "failed_label1_statistics.txt"
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write("未通过数据筛选但label值为1的统计报告\n")
+                f.write("=" * 50 + "\n")
+                f.write(f"统计时间: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"总条数: {total_failed_label1}\n\n")
+                
+                f.write("按日期和合作方统计:\n")
+                f.write("-" * 30 + "\n")
+                
+                for date in sorted_dates:
+                    f.write(f"\n日期: {date}\n")
+                    date_stats = stats_by_date_partner[date]
+                    for partner_code, count in sorted(date_stats.items()):
+                        f.write(f"  {partner_code}: {count} 条\n")
+                
+                # 添加详细数据列表
+                f.write("\n\n详细数据列表:\n")
+                f.write("-" * 40 + "\n")
+                for item in failed_but_label1_data:
+                    f.write(f"行号: {item['row_index']}, 合作方: {item['partner_code']}, "
+                        f"日期: {item['date']}, 失败类型: {item['failure_type']}, "
+                        f"原因: {item['reason']}\n")
+            
+            print(f"\n详细统计已输出到文件: {output_file}")
+            
+        except Exception as e:
+            print(f"输出统计文件时出错: {e}")
 
     def _load_all_time_data(self, data_file: str):
-        """加载所有时间文件夹下的数据"""
+        """加载所有时间文件夹下的数据，限定日期到2025-10-08"""
         all_data_list = []
         time_series_data = {}  # 用于存储时间序列数据
         
+        # 设置截止日期
+        cutoff_date = "2025-10-08"
+        
         if os.path.isfile(data_file):
-            # 如果是单个文件，直接读取
-            df = pd.read_csv(data_file)
-            date_str = os.path.basename(data_file).split('.')[0]
-            # df['date'] = date_str
-            all_data_list.append(df)
-            
-            # 添加到时间序列数据
-            time_series_data[date_str] = df
-            
+            # 如果是单个文件，检查日期是否在截止日期之前
+            file_date = os.path.basename(data_file).split('.')[0]
+            if file_date <= cutoff_date:
+                df = pd.read_csv(data_file)
+                all_data_list.append(df)
+                time_series_data[file_date] = df
+                print(f"成功加载文件: {file_date}, 形状: {df.shape}")
+            else:
+                print(f"跳过文件 {file_date}，超过截止日期 {cutoff_date}")
+                
         elif os.path.isdir(data_file):
             # 遍历所有时间文件夹
             date_folders = [f for f in os.listdir(data_file) 
                         if os.path.isdir(os.path.join(data_file, f))]
             
             for date_folder in sorted(date_folders):
+                # 检查日期是否在截止日期之前
+                if date_folder > cutoff_date:
+                    print(f"跳过文件夹 {date_folder}，超过截止日期 {cutoff_date}")
+                    continue
+                    
                 date_path = os.path.join(data_file, date_folder)
                 all_data_file = os.path.join(date_path, "all_data.csv")
                 
                 if os.path.exists(all_data_file):
                     try:
                         df = pd.read_csv(all_data_file)
-                        # df['date'] = date_folder  # 添加日期列
                         all_data_list.append(df)
                         time_series_data[date_folder] = df
                         print(f"成功加载: {date_folder}/all_data.csv, 形状: {df.shape}")
@@ -1078,6 +1203,63 @@ class DataCheck:
             print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
             return all_data, time_series_data
         else:
+            print("未找到符合日期要求的数据文件")
+            return pd.DataFrame(), {}
+        
+
+    def _load_data_by_time(self, data_file: str):
+        """加载所有时间文件夹下的数据，限定日期到2025-10-08"""
+        all_data_list = []
+        time_series_data = {}  # 用于存储时间序列数据
+        
+        # 设置截止日期
+        cutoff_date = "2025-10-08"
+        
+        if os.path.isfile(data_file):
+            # 如果是单个文件，检查日期是否在截止日期之前
+            file_date = os.path.basename(data_file).split('.')[0]
+            if file_date <= cutoff_date:
+                df = pd.read_csv(data_file)
+                # 添加日期列
+                df['date'] = file_date
+                all_data_list.append(df)
+                time_series_data[file_date] = df
+                print(f"成功加载文件: {file_date}, 形状: {df.shape}")
+            else:
+                print(f"跳过文件 {file_date}，超过截止日期 {cutoff_date}")
+                
+        elif os.path.isdir(data_file):
+            # 遍历所有时间文件夹
+            date_folders = [f for f in os.listdir(data_file) 
+                        if os.path.isdir(os.path.join(data_file, f))]
+            
+            for date_folder in sorted(date_folders):
+                # 检查日期是否在截止日期之前
+                if date_folder > cutoff_date:
+                    print(f"跳过文件夹 {date_folder}，超过截止日期 {cutoff_date}")
+                    continue
+                    
+                date_path = os.path.join(data_file, date_folder)
+                all_data_file = os.path.join(date_path, "all_data.csv")
+                
+                if os.path.exists(all_data_file):
+                    try:
+                        df = pd.read_csv(all_data_file)
+                        # 添加日期列
+                        df['date'] = date_folder
+                        all_data_list.append(df)
+                        time_series_data[date_folder] = df
+                        print(f"成功加载: {date_folder}/all_data.csv, 形状: {df.shape}")
+                    except Exception as e:
+                        print(f"加载文件 {all_data_file} 时出错: {e}")
+        
+        # 合并所有数据
+        if all_data_list:
+            all_data = pd.concat(all_data_list, ignore_index=True)
+            print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
+            return all_data, time_series_data
+        else:
+            print("未找到符合日期要求的数据文件")
             return pd.DataFrame(), {}
 
     """
@@ -1086,7 +1268,7 @@ class DataCheck:
     def analyze_data(self):
 
         # all_data, time_series_data = self._load_all_time_data(self.data_file)
-        unused_data, unused_time_series_data = self._load_all_time_data(self.unused_data_file)
+        unused_data, unused_time_series_data = self._load_data_by_time(self.unused_data_file)
         # original_data = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 原始数据，包含被过滤掉的特征
         # 脱敏特征统计
         # self.analyze_masked_features(original_data)
@@ -1101,7 +1283,7 @@ class DataCheck:
         # self.print_detailed_analysis(all_data)
 
         # # 数据符合验证
-        self.data_compliance_check(unused_data)
+        self.data_compliance_check(unused_data,unused_time_series_data)
 
 
 
