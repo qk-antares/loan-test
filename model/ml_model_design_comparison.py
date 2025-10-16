@@ -149,7 +149,7 @@ class LoanDistributionModel:
             'idInfo.nation', 'jobFunctions', 'linkmanList.0.relationship',
             'linkmanList.1.relationship', 'maritalStatus', 'province',
             'purpose', 'resideFunctions', 'deviceInfo.osType',
-            'deviceInfo.isCrossDomain', 'deviceInfo.applyPos'
+            'deviceInfo.isCrossDomain'
         ]
 
         # 只处理实际存在的分类特征
@@ -196,7 +196,7 @@ class LoanDistributionModel:
 
         # 6. 处理数值特征的缺失值
         numerical_features = ['amount', 'idInfo.birthDate', 'idInfo.validityDate',
-                              'pictureInfo.0.faceScore', 'term']
+                              'pictureInfo.0.faceScore', 'term', 'deviceInfo.gpsLatitude', 'deviceInfo.gpsLongitude']
         numerical_features = [f for f in numerical_features if f in processed_df.columns]
 
         for feature in numerical_features:
@@ -726,7 +726,7 @@ def main():
         loader = DataLoader(processed_root=processed_path)
 
         # 2️⃣ 自动划分训练 / 测试日期
-        train_start, train_end, test_start, test_end = loader.get_train_test_dates(scheme=2)
+        train_start, train_end, test_start, test_end = loader.get_train_test_dates(scheme=1)
 
         # 3️⃣ 加载训练集数据
         print("\n=== 加载训练数据 ===")
