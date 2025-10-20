@@ -59,6 +59,7 @@ class LoanDataProcessor:
             'deviceInfo.gpsLongitude',
             'deviceInfo.osType',
             'deviceInfo.isCrossDomain',
+            'deviceInfo.applyPos',
             'label'
         ]
         
@@ -550,7 +551,7 @@ def process_single_file(file_date: str):
     print("="*60)
 
 if __name__ == "__main__":
-    # process_all_data()
-    process_single_file("2025-10-15")
+    process_all_data()
+    # process_single_file("2025-10-17")
 
 
