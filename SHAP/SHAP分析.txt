@@ -1,0 +1,57 @@
+个人选取对所有合作方影响都较大的一些特征，并列出其取值高低代表的意义：
+
+bankCode:按照下面规则进行类别编码
+            state_owned_banks = ['102', '103', '104', '105', '301', '402']  # 国有大行
+            joint_stock_banks = ['302', '303', '304', '305', '306', '307', '308', '309', '310']  # 股份制银行
+            small_local_banks = ['313', '403', '404', '501']  # 小银行、农商行、外资行等
+age:分为30-45，45-60，其他（30以下60以上）。
+industry:即行业编码，分类别
+occupation:分类编码
+degree:值越高，学历越高
+province:分为发达省市（['北京市', '上海市', '广东省', '浙江省', '江苏省']）和非发达省市，值高代表发达省份
+city:同province，分为一线，新一线和其他，值高代表发达
+gender:分类编码
+martialStatus（婚姻状态），jobFunction（工作类型）,resideFunction（住宅类型）：分类编码
+income:收入高值高
+faceScore:分为0-80，80-90，90-100.值高代表得分越高
+ostype:设备类型，安卓，苹果，其他。分类别编码
+nation:汉族少数民族分类
+relationship,customersource:分类
+occupation:分类
+validityDate：身份证有效期，1年内，1-5年，长期有效。分类编码
+
+渠道影响的特征可参考SHAP图（每张图取影响最大的前40项）
+测试脚本于ml_test，可针对不同合作方选取特征值测试通过率是否提升。
+例如对于：XYF，参考SHAP图，可选：
+conditions = (
+    (df['degree'].isin([4, 5, 6])) &
+    (df['bankCardInfo.bankCode'].isin(selected_banks)) &
+    (df['income'].isin([2,3])) &
+    (df['idInfo.birthDate'].between(30, 45)) &
+    (df['city'].isin(selected_cities)) &
+    (df['province'].isin(selected_provinces)) &
+    (df['idInfo.gender'] == 'M') &
+    (df['idInfo.nation'].isin(['汉'])) &
+    (df['maritalStatus'] != 'Z')
+)
+结果：
+=== XYF_CODE_CODE 总体通过率 ===
+样本总数: 3525, 通过数: 694, 通过率: 19.69%
+
+=== XYF_CODE 筛选条件通过率 ===
+筛选后样本数: 12, 通过数: 6, 通过率: 50.00%
+筛选后与总体通过率通过率差异: 30.31%
+（问题在于特征值一旦过多，样本范围就会快速减少）
+
+
+对总的通过率具有较强作用的特征有：
+bankcode:国有大行促进通过，小银行、股份制、未知不容易通过。
+age:30-45最容易通过，45-60不同合作方情况不同。其他年龄段不容易通过
+industry:为Z降低
+degree:正相关，越高越容易通过
+occupation:90降低
+income:整体来说高收入更容易通过，但是对于部分合作方如AWJ，中收入群体最容易通过
+gender:女性更容易通过
+city、province：发达地区容易通过
+nation:少数民族不容易通过，汉族不代表容易通过（只是非汉族不容易通过）
+其余特征分不同合作方，影响不一定
