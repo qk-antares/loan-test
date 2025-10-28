@@ -3,16 +3,16 @@ import json
 import re
 from typing import Dict, Any
 import matplotlib.pyplot as plt
-import pandas as pd
 import os
-import glob
-from datetime import datetime
+import numpy as np
+import pandas as pd
+from typing import Dict, List
 import numpy as np
 
 
 class DataCheck:
         
-    def __init__(self, data_file: str="processed", original_data_file: str="data/2025-09-20.txt", unused_data_file: str="data_for_analysis"):
+    def __init__(self, data_file: str="processed", original_data_file: str="data/original_data/2025-09-20.txt", unused_data_file: str="data_for_analysis"):
         """
         初始化数据分析器
         
@@ -38,7 +38,6 @@ class DataCheck:
             print(f"JSON解析错误: {e}")
             return {}
              
-   
     """
     将嵌套字典扁平化为并列的键值对
     """       
@@ -88,7 +87,6 @@ class DataCheck:
         
         return result
 
-
     """
     原始数据简单处理
     """
@@ -104,13 +102,10 @@ class DataCheck:
     """
     合作方分布与通过率分析报告
     """
-    def calculate_distribution(self):
+    def calculate_distribution(self, all_data: pd.DataFrame, time_series_data: Dict[str, pd.DataFrame]):
         print("=" * 60)
         print("合作方分布与通过率分析报告")
         print("=" * 60)
-
-        # 1. 读取所有时间文件夹下的数据
-        all_data, time_series_data = self._load_all_time_data(self.data_file)
         
         if all_data.empty:
             print("未找到任何数据文件")
@@ -139,7 +134,6 @@ class DataCheck:
         # 5. 绘制图表
         self._plot_partner_trends(time_series_data)
    
-
     def _plot_partner_trends(self, time_series_data):
         """使用 matplotlib 的交互式功能"""
 
@@ -457,7 +451,6 @@ class DataCheck:
             print(f"脱敏特征(共{len(self.masked_features)}个) :{self.masked_features}")
         print()
 
-
     """
     过滤特征分析报告
     """
@@ -584,7 +577,7 @@ class DataCheck:
         analysis_df = analysis_df.sort_values('feature_name')
         
         return analysis_df
-    
+
 
     """
     打印详细的特征分析报告
@@ -627,7 +620,6 @@ class DataCheck:
                 print(f"  最小长度: {row['min_length']}")
         
         return analysis_df  
-
 
     """
     部分筛选条件
@@ -697,6 +689,8 @@ class DataCheck:
             return None
 
 
+
+
     def data_compliance_check(self, df: pd.DataFrame, unused_time_series_data: Dict[str, pd.DataFrame]):
         """
         条件筛选分析报告
@@ -764,16 +758,20 @@ class DataCheck:
                 print(f"行 {index}: 缺失字段 {missing_fields}")
                 self.missing_data.append(row)
                 add_failure_stat(row.get('partner_code'), '缺失字段', f"缺失字段: {missing_fields}")
-                
+
                 # 检查是否为label=1的数据
                 if row.get('label') == 1:
+                    # 将完整的行数据转换为字典并存储
+                    row_dict = row.to_dict() if hasattr(row, 'to_dict') else dict(row)
                     failed_but_label1_data.append({
                         'row_index': index,
                         'partner_code': row.get('partner_code'),
-                        'failure_type': '缺失字段',
-                        'reason': f"缺失字段: {missing_fields}",
-                        'date': row.get('date') if 'date' in row else '未知日期'
+                        'failure_type': failure_type,
+                        'reason': failure_reason,
+                        'date': record_date,
+                        'full_row_data': row_dict  # 存储完整行数据
                     })
+                
                 continue
 
             partner_code = row.get('partner_code')
@@ -1040,15 +1038,18 @@ class DataCheck:
             if not is_valid:
                 self.invalid_data.append(row)
                 add_failure_stat(partner_code, failure_type, failure_reason)
-                
+            
                 # 检查是否为label=1的数据
                 if row.get('label') == 1:
+                    # 将完整的行数据转换为字典并存储
+                    row_dict = row.to_dict() if hasattr(row, 'to_dict') else dict(row)
                     failed_but_label1_data.append({
                         'row_index': index,
-                        'partner_code': partner_code,
+                        'partner_code': row.get('partner_code'),
                         'failure_type': failure_type,
                         'reason': failure_reason,
-                        'date': record_date
+                        'date': record_date,
+                        'full_row_data': row_dict  # 存储完整行数据
                     })
 
         # 输出总体统计
@@ -1125,7 +1126,7 @@ class DataCheck:
                 print(f"  {partner_code}: {count} 条")
         
         # 输出到txt文件
-        output_file = "failed_label1_statistics.txt"
+        output_file = "data/data_compliance_check/failed_label1_statistics.txt"
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write("未通过数据筛选但label值为1的统计报告\n")
@@ -1144,81 +1145,47 @@ class DataCheck:
                 
                 # 添加详细数据列表
                 f.write("\n\n详细数据列表:\n")
-                f.write("-" * 40 + "\n")
-                for item in failed_but_label1_data:
-                    f.write(f"行号: {item['row_index']}, 合作方: {item['partner_code']}, "
+                f.write("=" * 50 + "\n")
+                for i, item in enumerate(failed_but_label1_data, 1):
+                    f.write(f"\n[{i}] 行号: {item['row_index']}, 合作方: {item['partner_code']}, "
                         f"日期: {item['date']}, 失败类型: {item['failure_type']}, "
                         f"原因: {item['reason']}\n")
+                    
+                    # 添加完整数据行信息
+                    f.write("完整数据行:\n")
+                    if 'full_row_data' in item:
+                        full_data = item['full_row_data']
+                        
+                        # 直接输出所有字段
+                        for key, value in full_data.items():
+                            f.write(f"  {key}: {value}\n")
+                    else:
+                        f.write("  完整数据未保存\n")
+                    f.write("-" * 80 + "\n")
             
             print(f"\n详细统计已输出到文件: {output_file}")
             
         except Exception as e:
             print(f"输出统计文件时出错: {e}")
 
-    def _load_all_time_data(self, data_file: str):
-        """加载所有时间文件夹下的数据，限定日期到2025-10-08"""
-        all_data_list = []
-        time_series_data = {}  # 用于存储时间序列数据
-        
-        # 设置截止日期
-        cutoff_date = "2025-10-08"
-        
-        if os.path.isfile(data_file):
-            # 如果是单个文件，检查日期是否在截止日期之前
-            file_date = os.path.basename(data_file).split('.')[0]
-            if file_date <= cutoff_date:
-                df = pd.read_csv(data_file)
-                all_data_list.append(df)
-                time_series_data[file_date] = df
-                print(f"成功加载文件: {file_date}, 形状: {df.shape}")
-            else:
-                print(f"跳过文件 {file_date}，超过截止日期 {cutoff_date}")
-                
-        elif os.path.isdir(data_file):
-            # 遍历所有时间文件夹
-            date_folders = [f for f in os.listdir(data_file) 
-                        if os.path.isdir(os.path.join(data_file, f))]
-            
-            for date_folder in sorted(date_folders):
-                # 检查日期是否在截止日期之前
-                if date_folder > cutoff_date:
-                    print(f"跳过文件夹 {date_folder}，超过截止日期 {cutoff_date}")
-                    continue
-                    
-                date_path = os.path.join(data_file, date_folder)
-                all_data_file = os.path.join(date_path, "all_data.csv")
-                
-                if os.path.exists(all_data_file):
-                    try:
-                        df = pd.read_csv(all_data_file)
-                        all_data_list.append(df)
-                        time_series_data[date_folder] = df
-                        print(f"成功加载: {date_folder}/all_data.csv, 形状: {df.shape}")
-                    except Exception as e:
-                        print(f"加载文件 {all_data_file} 时出错: {e}")
-        
-        # 合并所有数据
-        if all_data_list:
-            all_data = pd.concat(all_data_list, ignore_index=True)
-            print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
-            return all_data, time_series_data
-        else:
-            print("未找到符合日期要求的数据文件")
-            return pd.DataFrame(), {}
-        
 
-    def _load_data_by_time(self, data_file: str):
-        """加载所有时间文件夹下的数据，限定日期到2025-10-08"""
+
+
+    def _load_data_by_time(self, data_file: str, start_date: str = "2025-10-01", end_date: str = "2025-10-21"):
+        """加载所有时间文件夹下的数据，限定日期范围
+        
+        参数:
+        - data_file: 数据文件或目录路径
+        - start_date: 开始日期 (包含)
+        - end_date: 结束日期 (包含)
+        """
         all_data_list = []
         time_series_data = {}  # 用于存储时间序列数据
         
-        # 设置截止日期
-        cutoff_date = "2025-10-08"
-        
         if os.path.isfile(data_file):
-            # 如果是单个文件，检查日期是否在截止日期之前
+            # 如果是单个文件，检查日期是否在日期范围内
             file_date = os.path.basename(data_file).split('.')[0]
-            if file_date <= cutoff_date:
+            if start_date <= file_date <= end_date:
                 df = pd.read_csv(data_file)
                 # 添加日期列
                 df['date'] = file_date
@@ -1226,7 +1193,7 @@ class DataCheck:
                 time_series_data[file_date] = df
                 print(f"成功加载文件: {file_date}, 形状: {df.shape}")
             else:
-                print(f"跳过文件 {file_date}，超过截止日期 {cutoff_date}")
+                print(f"跳过文件 {file_date}，不在日期范围 {start_date} 到 {end_date}")
                 
         elif os.path.isdir(data_file):
             # 遍历所有时间文件夹
@@ -1234,9 +1201,12 @@ class DataCheck:
                         if os.path.isdir(os.path.join(data_file, f))]
             
             for date_folder in sorted(date_folders):
-                # 检查日期是否在截止日期之前
-                if date_folder > cutoff_date:
-                    print(f"跳过文件夹 {date_folder}，超过截止日期 {cutoff_date}")
+                # 检查日期是否在日期范围内
+                if date_folder < start_date:
+                    print(f"跳过文件夹 {date_folder}，早于开始日期 {start_date}")
+                    continue
+                elif date_folder > end_date:
+                    print(f"跳过文件夹 {date_folder}，超过结束日期 {end_date}")
                     continue
                     
                 date_path = os.path.join(data_file, date_folder)
@@ -1257,19 +1227,81 @@ class DataCheck:
         if all_data_list:
             all_data = pd.concat(all_data_list, ignore_index=True)
             print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
+            print(f"日期范围: {start_date} 到 {end_date}")
             return all_data, time_series_data
         else:
             print("未找到符合日期要求的数据文件")
             return pd.DataFrame(), {}
+        
+    def _load_all_time_data(self, data_file: str, start_date: str = "2025-10-01", end_date: str = "2025-10-21"):
+        """加载所有时间文件夹下的数据，限定日期范围
+        
+        参数:
+        - data_file: 数据文件或目录路径
+        - start_date: 开始日期 (包含)
+        - end_date: 结束日期 (包含)
+        """
+        all_data_list = []
+        time_series_data = {}  # 用于存储时间序列数据
+        
+        if os.path.isfile(data_file):
+            # 如果是单个文件，检查日期是否在日期范围内
+            file_date = os.path.basename(data_file).split('.')[0]
+            if start_date <= file_date <= end_date:
+                df = pd.read_csv(data_file)
+                all_data_list.append(df)
+                time_series_data[file_date] = df
+                print(f"成功加载文件: {file_date}, 形状: {df.shape}")
+            else:
+                print(f"跳过文件 {file_date}，不在日期范围 {start_date} 到 {end_date}")
+                
+        elif os.path.isdir(data_file):
+            # 遍历所有时间文件夹
+            date_folders = [f for f in os.listdir(data_file) 
+                        if os.path.isdir(os.path.join(data_file, f))]
+            
+            for date_folder in sorted(date_folders):
+                # 检查日期是否在日期范围内
+                if date_folder < start_date:
+                    print(f"跳过文件夹 {date_folder}，早于开始日期 {start_date}")
+                    continue
+                elif date_folder > end_date:
+                    print(f"跳过文件夹 {date_folder}，超过结束日期 {end_date}")
+                    continue
+                    
+                date_path = os.path.join(data_file, date_folder)
+                all_data_file = os.path.join(date_path, "all_data.csv")
+                
+                if os.path.exists(all_data_file):
+                    try:
+                        df = pd.read_csv(all_data_file)
+                        all_data_list.append(df)
+                        time_series_data[date_folder] = df
+                        print(f"成功加载: {date_folder}/all_data.csv, 形状: {df.shape}")
+                    except Exception as e:
+                        print(f"加载文件 {all_data_file} 时出错: {e}")
+        
+        # 合并所有数据
+        if all_data_list:
+            all_data = pd.concat(all_data_list, ignore_index=True)
+            print(f"总共加载 {len(all_data_list)} 个文件，合并后形状: {all_data.shape}")
+            print(f"日期范围: {start_date} 到 {end_date}")
+            return all_data, time_series_data
+        else:
+            print("未找到符合日期要求的数据文件")
+            return pd.DataFrame(), {}
+
 
     """
     合作方分布以及特征分析报告
     """
     def analyze_data(self):
 
-        # all_data, time_series_data = self._load_all_time_data(self.data_file)
-        unused_data, unused_time_series_data = self._load_data_by_time(self.unused_data_file)
-        # original_data = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 原始数据，包含被过滤掉的特征
+        all_data, time_series_data = self._load_all_time_data(self.data_file) # 加载处理好的数据
+        # unused_data, unused_time_series_data = self._load_data_by_time(self.unused_data_file) # 加载添加了额外特征如applyPos的数据
+        # original_data = pd.read_csv(self.original_data_file, sep='\|\|', engine='python') # 加载原始数据，包含被过滤掉的特征
+       
+       
         # 脱敏特征统计
         # self.analyze_masked_features(original_data)
 
@@ -1277,13 +1309,13 @@ class DataCheck:
         # self.analyze_filtered_features(all_data, original_data)
 
         # # 合作方分布与通过率分析
-        # self.calculate_distribution()
+        self.calculate_distribution(all_data, time_series_data)
 
         # # 各特征详细分析
         # self.print_detailed_analysis(all_data)
 
-        # # 数据符合验证
-        self.data_compliance_check(unused_data,unused_time_series_data)
+        # 数据符合验证
+        # self.data_compliance_check(unused_data,unused_time_series_data)
 
 
 
