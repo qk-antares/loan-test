@@ -35,6 +35,44 @@ class DataLoader:
         all_dates = self.list_date_dirs()
         return all_dates[-1] if all_dates else None
 
+    # def load_data_range(self, start_date: str, end_date: str) -> pd.DataFrame:
+    #     """
+    #     加载指定日期范围内的所有 all_data.csv 文件，并合并成一个DataFrame。
+    #     """
+    #     all_dates = self.list_date_dirs()
+    #     selected_dates = [d for d in all_dates if start_date <= d <= end_date]
+    #
+    #     if not selected_dates:
+    #         raise ValueError(f"❌ 找不到日期范围 {start_date} 至 {end_date} 的数据")
+    #
+    #     print(f"📅 加载数据：{selected_dates[0]} → {selected_dates[-1]}（共 {len(selected_dates)} 天）")
+    #
+    #     dfs = []
+    #     for date in selected_dates:
+    #         day_path = os.path.join(self.processed_root, date)
+    #         # 只加载 all_data.csv 文件
+    #         all_data_file = os.path.join(day_path, "all_data.csv")
+    #
+    #         if not os.path.exists(all_data_file):
+    #             print(f"⚠️ {date} 没有 all_data.csv 文件，跳过")
+    #             continue
+    #
+    #         try:
+    #             df = pd.read_csv(all_data_file)
+    #             dfs.append(df)
+    #             print(f"  ✅ 已加载: {date}/all_data.csv ({len(df)} 行)")
+    #
+    #         except Exception as e:
+    #             print(f"⚠️ 读取 {all_data_file} 失败：{e}")
+    #
+    #     if not dfs:
+    #         raise ValueError(f"❌ 日期 {start_date} 至 {end_date} 内没有有效的 all_data.csv 文件")
+    #
+    #     df_all = pd.concat(dfs, ignore_index=True)
+    #     print(f"✅ 加载完成，共 {len(df_all)} 条记录，来自 {len(selected_dates)} 天")
+    #
+    #     return df_all
+
     def load_data_range(self, start_date: str, end_date: str) -> pd.DataFrame:
         """
         加载指定日期范围内的所有 all_data.csv 文件，并合并成一个DataFrame。
@@ -50,7 +88,6 @@ class DataLoader:
         dfs = []
         for date in selected_dates:
             day_path = os.path.join(self.processed_root, date)
-            # 只加载 all_data.csv 文件
             all_data_file = os.path.join(day_path, "all_data.csv")
 
             if not os.path.exists(all_data_file):
@@ -59,8 +96,16 @@ class DataLoader:
 
             try:
                 df = pd.read_csv(all_data_file)
+
+                # 🔹 只保留指定合作方
+                allowed_codes = [
+                    "AWJ_CODE", "FZ_CODE", "HXQB_CODE", "JY_CODE",
+                    "LXJ_CODE", "RONG_CODE", "XYF_CODE"
+                ]
+                df = df[df["partner_code"].isin(allowed_codes)]
+
                 dfs.append(df)
-                print(f"  ✅ 已加载: {date}/all_data.csv ({len(df)} 行)")
+                print(f"  ✅ 已加载: {date}/all_data.csv ({len(df)} 行，已筛选合作方)")
 
             except Exception as e:
                 print(f"⚠️ 读取 {all_data_file} 失败：{e}")

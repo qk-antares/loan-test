@@ -1,0 +1,103 @@
+import os
+import glob
+import pandas as pd
+from datetime import datetime
+
+
+class DataLoader:
+    """
+    从 processed 目录按日期加载多天数据，并支持自动划分训练/测试集。
+    """
+
+    def __init__(self, processed_root="processed"):
+        self.processed_root = processed_root
+        if not os.path.exists(self.processed_root):
+            raise FileNotFoundError(f"❌ 路径不存在: {self.processed_root}")
+
+    def list_date_dirs(self):
+        """列出 processed 目录下的所有日期文件夹（按日期升序）"""
+        all_dirs = [
+            d for d in os.listdir(self.processed_root)
+            if os.path.isdir(os.path.join(self.processed_root, d))
+        ]
+        valid_dates = []
+        for d in all_dirs:
+            try:
+                datetime.strptime(d, "%Y-%m-%d")
+                valid_dates.append(d)
+            except ValueError:
+                continue
+        valid_dates.sort()
+        return valid_dates
+
+    def get_latest_date(self):
+        """返回最新日期"""
+        all_dates = self.list_date_dirs()
+        return all_dates[-1] if all_dates else None
+
+
+    def load_data_range(self, start_date: str, end_date: str) -> pd.DataFrame:
+        """
+        加载指定日期范围内的所有 all_data.csv 文件，并合并成一个DataFrame。
+        """
+        all_dates = self.list_date_dirs()
+        selected_dates = [d for d in all_dates if start_date <= d <= end_date]
+
+        if not selected_dates:
+            raise ValueError(f"❌ 找不到日期范围 {start_date} 至 {end_date} 的数据")
+
+        print(f"📅 加载数据：{selected_dates[0]} → {selected_dates[-1]}（共 {len(selected_dates)} 天）")
+
+        dfs = []
+        for date in selected_dates:
+            day_path = os.path.join(self.processed_root, date)
+            all_data_file = os.path.join(day_path, "all_data.csv")
+
+            if not os.path.exists(all_data_file):
+                print(f"⚠️ {date} 没有 all_data.csv 文件，跳过")
+                continue
+
+            try:
+                df = pd.read_csv(all_data_file)
+
+                # 🔹 排除指定合作方（黑名单模式）
+                excluded_codes = ["FZ_CODE", "LYX_CODE", "YXG_CODE", "BHYP_CODE"]
+                df = df[~df["partner_code"].isin(excluded_codes)]
+
+                dfs.append(df)
+                print(f"  ✅ 已加载: {date}/all_data.csv ({len(df)} 行，已排除合作方)")
+
+            except Exception as e:
+                print(f"⚠️ 读取 {all_data_file} 失败：{e}")
+
+        if not dfs:
+            raise ValueError(f"❌ 日期 {start_date} 至 {end_date} 内没有有效的 all_data.csv 文件")
+
+        df_all = pd.concat(dfs, ignore_index=True)
+        print(f"✅ 加载完成，共 {len(df_all)} 条记录，来自 {len(selected_dates)} 天")
+
+        return df_all
+
+    def get_train_test_dates(self):
+        """
+        自动生成实验所需的训练/测试时间范围，仅保留方案2：
+        训练集从 2025-10-01 开始，到倒数第三天
+        测试集为倒数第二天和最新一天
+        """
+        all_dates = self.list_date_dirs()
+        if len(all_dates) < 5:
+            raise ValueError("❌ 数据不足5天，无法执行划分")
+
+        latest = all_dates[-1]
+        latest_minus_1 = all_dates[-2]
+        latest_minus_2 = all_dates[-3]
+
+        train_start = "2025-10-01"
+        train_end = latest_minus_2
+        test_start = latest_minus_1
+        test_end = latest
+
+        print(f"📊 划分结果：")
+        print(f"   训练集：{train_start} → {train_end}")
+        print(f"   测试集：{test_start} → {test_end}")
+        return train_start, train_end, test_start, test_end

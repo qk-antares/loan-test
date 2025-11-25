@@ -12,7 +12,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from collections import defaultdict
 
-from data_utils import *
+from .data_utils import *
+
 
 
 class LoanDataProcessor:
@@ -22,13 +23,23 @@ class LoanDataProcessor:
         初始化数据处理器
 
         Args:
-            output_dir: 输出目录
+            output_dir: 输出目录。如果为 None 或不传，则默认为项目根目录下的 `processed`。
+                        可以传入绝对路径或相对路径（相对路径相对于项目根解析）。
         """
-        self.output_dir = output_dir
+        # 计算项目根：data_process 文件所在目录的上一层
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # .../project/data_process
+        project_root = os.path.dirname(script_dir)                # .../project
 
-        # 创建输出目录
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        # 处理 output_dir 参数
+        if output_dir:
+            # 如果是绝对路径就直接使用；如果是相对路径，就相对于 project_root
+            self.output_dir = output_dir if os.path.isabs(output_dir) else os.path.join(project_root, output_dir)
+        else:
+            # 默认放到项目根下的 processed 文件夹
+            self.output_dir = os.path.join(project_root, "processed")
+
+        # 创建输出目录（存在则不报错）
+        os.makedirs(self.output_dir, exist_ok=True)
         
         # 目前暂定使用以下特征（注释的不使用）
         self.feature_columns = [
@@ -120,24 +131,66 @@ class LoanDataProcessor:
             self.stats['json_parse_errors'] += 1
             return {}
     
+    # def extract_nested_value(self, data: Dict[str, Any], field_path: str) -> Any:
+    #     """
+    #     从嵌套字典中提取值，支持点号分隔的路径，参考原代码
+    #
+    #     Args:
+    #         data: 数据字典
+    #         field_path: 字段路径，如 "bankCardInfo.bankCode"
+    #
+    #     Returns:
+    #         提取到的值，如果不存在则返回None
+    #     """
+    #     if not field_path:
+    #         return None
+    #
+    #     try:
+    #         keys = field_path.split('.')
+    #         value = data
+    #
+    #         for key in keys:
+    #             if isinstance(value, dict) and key in value:
+    #                 value = value[key]
+    #             elif isinstance(value, list) and key.isdigit():
+    #                 # 处理列表索引
+    #                 index = int(key)
+    #                 if 0 <= index < len(value):
+    #                     value = value[index]
+    #                 else:
+    #                     return None
+    #             else:
+    #                 return None
+    #
+    #         if value == '':
+    #             return None
+    #         return value
+    #     except (KeyError, IndexError, ValueError, TypeError):
+    #         return None
+
     def extract_nested_value(self, data: Dict[str, Any], field_path: str) -> Any:
         """
-        从嵌套字典中提取值，支持点号分隔的路径，参考原代码
-        
-        Args:
-            data: 数据字典
-            field_path: 字段路径，如 "bankCardInfo.bankCode"
-            
-        Returns:
-            提取到的值，如果不存在则返回None
+        从嵌套或扁平数据结构中提取字段值，自动处理：
+        - 扁平 key（直接查）
+        - 嵌套 key（递归查）
+        - 列表索引
+        - 类型转换（字符串数字自动转 int/float）
+        - '' 自动转 None
         """
+
         if not field_path:
             return None
-            
+
+        # 处理扁平结构
+        if field_path in data:
+            value = data[field_path]
+            return self._clean_value(value, field_path)
+
+        # 处理嵌套结构
         try:
             keys = field_path.split('.')
             value = data
-            
+
             for key in keys:
                 if isinstance(value, dict) and key in value:
                     value = value[key]
@@ -150,13 +203,35 @@ class LoanDataProcessor:
                         return None
                 else:
                     return None
-            
-            if value == '':
-                return None
-            return value
+
+            return self._clean_value(value, field_path)
+
         except (KeyError, IndexError, ValueError, TypeError):
             return None
-    
+
+    def _clean_value(self, value, field_path=None):
+        """统一处理类型，保证和训练时一致"""
+
+        # 空字符串视为 None
+        if value == "" or value is None:
+            return None
+
+        # 日期字段不能转数字
+        if field_path and (
+                "birthDate" in field_path
+                or "validityDate" in field_path
+                or "date" in field_path.lower()
+        ):
+            return value  # 保持原样（字符串）
+
+        # 数字字符串自动转 float / int
+        if isinstance(value, str):
+            v = value.replace(".", "", 1)
+            if v.isdigit():  # 可转数字的字符串
+                return float(value) if "." in value else int(value)
+
+        return value
+
     def extract_features(self, json_data: Dict[str, Any], feature_list: List[str], request_id: str = None) -> Dict[str, Any]:
         """
         从JSON数据中提取指定的特征，参考原代码逻辑
@@ -310,7 +385,57 @@ class LoanDataProcessor:
             print(f"特征提取错误: {e}")
             self.stats['feature_extract_errors'] += 1
             return None
-    
+
+    def process_single_record_for_predict(
+            self,
+            json_data: Dict[str, Any],
+            feature_list=None
+    ) -> Dict[str, Any]:
+        """
+        预测时处理单条记录：
+        - 复用 extract_features()
+        - 不返回 label 和 partner_code
+        - 从 json_data 提取 id 并单独传递给 extract_features
+        - 对 json_data 中的数值和列表进行安全转换，避免类型错误
+        """
+        try:
+            # 如果未指定 feature_list，则使用模型训练时的 feature_columns
+            if feature_list is None:
+                feature_list = self.feature_columns
+
+            # 从 json_data 提取 id 并删除原字段
+            record_id = json_data.pop("id", None)
+
+            # 安全处理 json_data 中的字段
+            safe_json_data = {}
+            for k, v in json_data.items():
+                if isinstance(v, list):
+                    # 列表用逗号拼接为字符串
+                    safe_json_data[k] = ",".join(map(str, v))
+                elif v is None:
+                    safe_json_data[k] = None
+                elif not isinstance(v, str):
+                    safe_json_data[k] = str(v)
+                else:
+                    safe_json_data[k] = v
+
+            # 提取特征
+            features = self.extract_features(safe_json_data, feature_list, record_id)
+
+        except Exception as e:
+            print(f"[Predict] Feature extraction failed: {e}")
+            features = {}
+
+        # 构建返回的特征 dict
+        cleaned = {}
+        for feature in feature_list:
+            # 预测时不需要 label / partner_code
+            if feature in ("partner_code", "label"):
+                continue
+            cleaned[feature] = features.get(feature)
+
+        return cleaned
+
     def write_batch_data(self, all_data: List[Dict[str, Any]], partner_data: Dict[str, List[Dict[str, Any]]], file_date: str = None):
         """
         批量写入数据，包含数据清洗
@@ -542,8 +667,10 @@ def process_single_file(file_date: str):
     """处理单个文件的辅助函数"""
     processor = LoanDataProcessor()
 
-    processor.process_file(f'data/{file_date}.txt')
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_path = os.path.join(base_dir, "data", f"{file_date}.txt")
 
+    processor.process_file(file_path)
     processor.print_statistics()
 
     print("\n" + "="*60)
@@ -552,6 +679,6 @@ def process_single_file(file_date: str):
 
 if __name__ == "__main__":
     # process_all_data()
-    process_single_file("2025-10-31")
+    process_single_file("2025-11-18")
 
 

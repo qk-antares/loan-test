@@ -127,83 +127,98 @@ class LoanDistributionModel:
                         lambda x: 1 if keyword in x else 0
                     )
 
-        # 3. 学历编码 (JUNIOR=1, ..., DOCTOR=6)
+        # 3. 学历 one-hot 编码 (JUNIOR=1, ..., DOCTOR=6)
         if 'degree' in processed_df.columns:
-            # FIX_BUG: 现在数据预处理脚本已经对学历进行编码，这里只用填充NaN为0
-            processed_df['degree_encoded'] = processed_df['degree'].fillna(0)
-            processed_df = processed_df.drop('degree', axis=1)
+            processed_df['degree'] = processed_df['degree'].fillna(0)  # 缺失值填0
 
-        # 4. 收入等级编码 (A=1, B=2, C=3, D=4)
+            def simplify_degree(degree_val):
+                mapping = {
+                    1.0: 'JUNIOR',
+                    2.0: 'SENIOR',
+                    3.0: 'COLLEGE',
+                    4.0: 'BACHELOR',
+                    5.0: 'MASTER',
+                    6.0: 'DOCTOR'
+                }
+                return mapping.get(degree_val, 'UNKNOWN')
+
+            processed_df['degree_group'] = processed_df['degree'].apply(simplify_degree)
+            degree_dummies = pd.get_dummies(processed_df['degree_group'], prefix='degree')
+            processed_df = pd.concat([processed_df, degree_dummies], axis=1)
+            processed_df = processed_df.drop(['degree', 'degree_group'], axis=1)
+            print("学历 one-hot 列：", degree_dummies.columns.tolist())
+            print("学历类别分布：\n", degree_dummies.sum())
+
+        # 收入
         if 'income' in processed_df.columns:
-            # FIX_BUG: 现在数据预处理脚本已经对收入进行编码，这里只用填充NaN为0
-            processed_df['income_encoded'] = processed_df['income'].fillna(0)
-            processed_df = processed_df.drop('income', axis=1)
+            processed_df['income'] = processed_df['income'].fillna(0)  # 缺失值填0
+            def simplify_income(income_val):
+                mapping = {
+                    1.0: 'A',
+                    2.0: 'B',
+                    3.0: 'C',
+                    4.0: 'D'
+                }
+                return mapping.get(income_val, 'UNKNOWN')
 
+            processed_df['income_group'] = processed_df['income'].apply(simplify_income)
+            income_dummies = pd.get_dummies(processed_df['income_group'], prefix='income')
+            processed_df = pd.concat([processed_df, income_dummies], axis=1)
+            processed_df = processed_df.drop(['income', 'income_group'], axis=1)
+            print("收入 one-hot 列：", income_dummies.columns.tolist())
+            print("收入类别分布：\n", income_dummies.sum())
 
         # 4.5 城市与省份自定义编码（新增部分） ==============================
-        # 🏙️ 城市编码：一线=2，新一线=1，其他=0，未知=-1
         if 'city' in processed_df.columns:
             processed_df['city'] = processed_df['city'].fillna('UNKNOWN').astype(str)
+
             first_tier = ['北京市', '上海市', '广州市', '深圳市']
-            new_first_tier = ['杭州市', '南京市', '成都市', '武汉市', '重庆市', '苏州市', '天津市', '西安市', '长沙市','青岛市']
-            def encode_city(city):
+            new_first_tier = ['杭州市', '南京市', '成都市', '武汉市', '重庆市', '苏州市', '天津市', '西安市', '长沙市',
+                              '青岛市']
+            # 分类函数
+            def simplify_city(city):
                 if city in first_tier:
-                    return 2
+                    return 'first_tier'
                 elif city in new_first_tier:
-                    return 1
-                elif city == 'UNKNOWN':
-                    return -1
+                    return 'new_first_tier'
                 else:
-                    return 0
+                    return 'others'
+            # 应用分组
+            processed_df['city_group'] = processed_df['city'].apply(simplify_city)
+            # one-hot 编码
+            city_dummies = pd.get_dummies(processed_df['city_group'], prefix='city')
+            # 合并到原数据
+            processed_df = pd.concat([processed_df, city_dummies], axis=1)
+            # 删除原始列和中间列
+            processed_df = processed_df.drop(['city', 'city_group'], axis=1)
+            # 打印调试信息
+            print("城市分组 one-hot 列：", city_dummies.columns.tolist())
+            print("城市类别分布：\n", city_dummies.sum())
 
-            processed_df['city_encoded'] = processed_df['city'].apply(encode_city)
-            processed_df = processed_df.drop('city', axis=1)
 
-
-        # 🗺️ 省份编码：北京上海广东浙江江苏=1，其他=0，未知=-1
+        # 🗺️ 省份 one-hot 编码：重点省份、省外、未知
         if 'province' in processed_df.columns:
             processed_df['province'] = processed_df['province'].fillna('UNKNOWN').astype(str)
-            # 重点省份定义
             key_provinces = ['北京市', '上海市', '广东省', '浙江省', '江苏省']
-
-            def encode_province(province):
-                if province in key_provinces:
-                    return 1
-                elif province == 'UNKNOWN':
-                    return -1
+            def simplify_province(province):
+                if province == 'UNKNOWN':
+                    return 'UNKNOWN'
+                elif province in key_provinces:
+                    return 'key_province'
                 else:
-                    return 0
+                    return 'other_province'
+            # 创建新列
+            processed_df['province_group'] = processed_df['province'].apply(simplify_province)
+            # One-hot 编码
+            province_dummies = pd.get_dummies(processed_df['province_group'], prefix='province')
+            # 合并结果
+            processed_df = pd.concat([processed_df, province_dummies], axis=1)
+            # 删除原始列
+            processed_df = processed_df.drop(['province', 'province_group'], axis=1)
+            # 输出结果查看
+            print("省份分组 one-hot 列：", province_dummies.columns.tolist())
+            print("省份类别分布：\n", province_dummies.sum())
 
-            processed_df['province_encoded'] = processed_df['province'].apply(encode_province)
-            processed_df = processed_df.drop('province', axis=1)
-
-
-        # 银行编码分类（国有大行=2，股份制银行=1，小银行/农商行=0）
-        # if 'bankCardInfo.bankCode' in processed_df.columns:
-        #     processed_df['bankCardInfo.bankCode'] = processed_df['bankCardInfo.bankCode'].fillna('UNKNOWN').astype(
-        #         str)
-        #
-        #     # 定义各类银行代码
-        #     state_owned_banks = ['102', '103', '104', '105', '301', '402']  # 国有大行
-        #     joint_stock_banks = ['302', '303', '304', '305', '306', '307', '308', '309', '310']  # 股份制银行
-        #     small_local_banks = ['313', '403', '404', '501']  # 小银行、农商行、外资行等
-        #
-        #     def encode_bank_code(bank_code):
-        #         if bank_code in state_owned_banks:
-        #             return 2
-        #         elif bank_code in joint_stock_banks:
-        #             return 1
-        #         elif bank_code in small_local_banks:
-        #             return 0
-        #         elif bank_code == 'UNKNOWN':
-        #             return -1
-        #         else:
-        #             # 未知银行默认归入风险较高的一类
-        #             return 0
-        #
-        #     processed_df['bankCardInfo.bankCode_encoded'] = processed_df['bankCardInfo.bankCode'].apply(
-        #         encode_bank_code)
-        #     processed_df = processed_df.drop('bankCardInfo.bankCode', axis=1)
 
         # 银行编码 one-hot 编码
         if 'bankCardInfo.bankCode' in processed_df.columns:
@@ -241,25 +256,32 @@ class LoanDistributionModel:
 
         if 'deviceInfo.applyPos' in processed_df.columns:
             processed_df['deviceInfo.applyPos'] = processed_df['deviceInfo.applyPos'].fillna('UNKNOWN').astype(str)
-
-            # 直接提取前三个字符作为省份
+            # 提取前三个字符作为省份
             processed_df['device_province'] = processed_df['deviceInfo.applyPos'].apply(
-                lambda x: x[:3] if x != 'UNKNOWN' else 'UNKNOWN')
+                lambda x: x[:3] if x != 'UNKNOWN' else 'UNKNOWN'
+            )
 
-            # 省份编码规则
+            # 分组函数
             key_provinces = ['北京市', '上海市', '广东省', '浙江省', '江苏省']
-            def encode_province(prov):
+            def simplify_device_province(prov):
                 if prov == 'UNKNOWN':
-                    return -1
+                    return 'unknown'
                 elif prov in key_provinces:
-                    return 1
+                    return 'key_province'
                 else:
-                    return 0
-            processed_df['device_province_encoded'] = processed_df['device_province'].apply(encode_province)
-            processed_df = processed_df.drop('device_province', axis=1)
+                    return 'others'
+            processed_df['device_province_group'] = processed_df['device_province'].apply(simplify_device_province)
+            # one-hot 编码
+            device_province_dummies = pd.get_dummies(processed_df['device_province_group'], prefix='device_province')
+            processed_df = pd.concat([processed_df, device_province_dummies], axis=1)
 
-            # 删除原始 applyPos 列
-            processed_df = processed_df.drop('deviceInfo.applyPos', axis=1)
+            # 删除原始列和中间列
+            processed_df = processed_df.drop(['deviceInfo.applyPos', 'device_province', 'device_province_group'],
+                                             axis=1)
+            # 打印调试信息
+            print("设备省份 one-hot 列：", device_province_dummies.columns.tolist())
+            print("设备省份类别分布：\n", device_province_dummies.sum())
+
 
         if 'idInfo.birthDate' in processed_df.columns:
             # 年龄已经是数值
@@ -285,48 +307,67 @@ class LoanDistributionModel:
             print("年龄分组 one-hot 列：", age_dummies.columns.tolist())
             print("年龄分组总分布：\n", age_dummies.sum())
 
+
         if 'pictureInfo.0.faceScore' in processed_df.columns:
-            processed_df['pictureInfo.0.faceScore'] = pd.to_numeric(processed_df['pictureInfo.0.faceScore'],
-                                                                    errors='coerce')
-            def encode_face_score(score):
-                if 90 <score <= 100:
-                    return 2
+            # 转换为数值型
+            processed_df['pictureInfo.0.faceScore'] = pd.to_numeric(
+                processed_df['pictureInfo.0.faceScore'], errors='coerce'
+            )
+
+            # 定义分组函数
+            def simplify_face_score(score):
+                if pd.isna(score):
+                    return 'unknown'
+                elif 90 < score <= 100:
+                    return '90-100'
                 elif 80 <= score <= 90:
-                    return 1
-                elif score < 80:
-                    return 0
+                    return '80-90'
+                elif 0 <= score < 80:
+                    return '0-80'
                 else:
-                    return -1
-            processed_df['faceScore_group'] = processed_df['pictureInfo.0.faceScore'].apply(encode_face_score)
-            print("脸部识别分数总分布：")
-            print(processed_df['faceScore_group'].value_counts())
-            processed_df = processed_df.drop('pictureInfo.0.faceScore', axis=1)
+                    return 'unknown'
+            # 应用分组
+            processed_df['faceScore_group'] = processed_df['pictureInfo.0.faceScore'].apply(simplify_face_score)
+            # one-hot 编码
+            face_dummies = pd.get_dummies(processed_df['faceScore_group'], prefix='face')
+            # 合并编码列
+            processed_df = pd.concat([processed_df, face_dummies], axis=1)
+            # 删除原始列与中间列
+            processed_df = processed_df.drop(['pictureInfo.0.faceScore', 'faceScore_group'], axis=1)
+            # 调试信息
+            print("脸部分数分组 one-hot 列：", face_dummies.columns.tolist())
+            print("脸部分组总分布：\n", face_dummies.sum())
 
 
         if 'idInfo.validityDate' in processed_df.columns:
-            def encode_validity_days(days_left):
-                if days_left is None:
-                    return -1  # 无效或缺失
+            # 定义分组函数
+            def simplify_validity(days_left):
+                if pd.isna(days_left):
+                    return 'invalid_or_missing'
                 elif days_left <= 365:
-                    return 0  # 1年以内
+                    return 'within_1y'
                 elif days_left <= 365 * 5:
-                    return 1  # 1-5年
+                    return '1_5y'
                 else:
-                    return 2  # 超过5年或长期有效
-
-            processed_df['validity_encoded'] = processed_df['idInfo.validityDate'].apply(encode_validity_days)
-            # 打印总的类别数量
-            print("有效期编码总分布：")
-            print(processed_df['validity_encoded'].value_counts())
-            processed_df = processed_df.drop('idInfo.validityDate', axis=1)
-
+                    return 'over_5y'
+            # 应用分类函数
+            processed_df['validity_group'] = processed_df['idInfo.validityDate'].apply(simplify_validity)
+            # one-hot 编码
+            validity_dummies = pd.get_dummies(processed_df['validity_group'], prefix='validity')
+            # 合并编码列
+            processed_df = pd.concat([processed_df, validity_dummies], axis=1)
+            # 删除原始列与中间列
+            processed_df = processed_df.drop(['idInfo.validityDate', 'validity_group'], axis=1)
+            # 输出调试信息
+            print("身份证有效期分组 one-hot 列：", validity_dummies.columns.tolist())
+            print("身份证有效期分布：\n", validity_dummies.sum())
 
         # jobFunctions
-        if 'jobFunctions' in processed_df.columns:
-            processed_df['jobFunctions'] = processed_df['jobFunctions'].fillna('UNKNOWN').astype(str)
-            job_dummies = pd.get_dummies(processed_df['jobFunctions'], prefix='job')
-            processed_df = pd.concat([processed_df, job_dummies], axis=1)
-            processed_df = processed_df.drop('jobFunctions', axis=1)
+        # if 'jobFunctions' in processed_df.columns:
+        #     processed_df['jobFunctions'] = processed_df['jobFunctions'].fillna('UNKNOWN').astype(str)
+        #     job_dummies = pd.get_dummies(processed_df['jobFunctions'], prefix='job')
+        #     processed_df = pd.concat([processed_df, job_dummies], axis=1)
+        #     processed_df = processed_df.drop('jobFunctions', axis=1)
 
         # resideFunctions
         if 'resideFunctions' in processed_df.columns:
@@ -1076,81 +1117,25 @@ def main():
         X_train, Y_train_dict = model.prepare_training_data(processed_train_data, fit_scaler=True)
         X_test, Y_test_dict = model.prepare_training_data(processed_test_data, fit_scaler=False)
 
+        # print(f"训练集特征数: {processed_train_data.shape[1]}")
+        # print(f"测试集特征数: {processed_test_data.shape[1]}")
+        #
+        # train_cols = set(processed_train_data.columns)
+        # test_cols = set(processed_test_data.columns)
+        #
+        # missing_in_test = train_cols - test_cols
+        # extra_in_test = test_cols - train_cols
+        #
+        # print("\n=== 测试集中缺少的列（训练集有但测试集没有） ===")
+        # print(missing_in_test if missing_in_test else "无")
+        #
+        # print("\n=== 测试集多出来的列（测试集有但训练集没有） ===")
+        # print(extra_in_test if extra_in_test else "无")
+
         print(processed_train_data.columns)
 
         # 8️⃣ 比较不同不平衡策略
-        comparison_results = model.compare_imbalance_strategies(X_train, Y_train_dict, X_test, Y_test_dict)
-
-        # partner = "LXJ_CODE"  # 根据你的数据修改
-        #
-        # if partner not in processed_train_data['partner_code'].unique():
-        #     print(f"⚠️ 数据中没有 {partner} 合作方，跳过规则分析")
-        # else:
-        #     # 取出该合作方的数据
-        #     df_partner = processed_train_data[processed_train_data['partner_code'] == partner].copy()
-        #
-        #     # 统计总体通过率
-        #     total_samples = len(df_partner)
-        #     total_passed = df_partner['label'].sum()  # label=1表示通过
-        #     overall_pass_rate = total_passed / total_samples if total_samples > 0 else 0
-        #     print(f"\n=== {partner} 总体通过率 ===")
-        #     print(f"样本总数: {total_samples}")
-        #     print(f"真实通过数: {total_passed}")
-        #     print(f"总体通过率: {overall_pass_rate:.2%}")
-        #
-        #     # 定义规则函数
-        #     # 定义特征偏好方向
-        #     feature_directions = {
-        #         'bankCardInfo.bankCode_encoded': 'low',
-        #         'idInfo.birthDate': 'high',  # 数据处理后为年龄
-        #         'degree_encoded': 'high',
-        #         'maritalStatus_encoded': 'low',
-        #         'income_encoded': 'high',
-        #         'idInfo.gender_encoded': 'low',
-        #         'companyInfo.industry_encoded': 'low',
-        #         'companyInfo.occupation_encoded': 'low',
-        #         'deviceInfo.isCrossDomain_encoded': 'high'
-        #     }
-        #
-        #     # feature_directions = {
-        #     #     'bankCardInfo.bankCode_encoded': 'low',
-        #     #     'degree_encoded': 'high',
-        #     #     'pictureInfo.0.faceScore': 'high',
-        #     #     'idInfo.birthDate': 'high',  # 数据处理后为年龄
-        #     #     # 'degree_encoded': 'high',
-        #     #     # 'maritalStatus_encoded': 'low',
-        #     #     'income_encoded': 'high',
-        #     #     'idInfo.gender_encoded': 'low',
-        #     #     # 'companyInfo.industry_encoded': 'low',
-        #     #     # 'companyInfo.occupation_encoded': 'low'
-        #     # }
-        #
-        #     # 定义规则函数，基于均值判断
-        #     def is_pass_candidate(row, df, feature_directions):
-        #         for feature, direction in feature_directions.items():
-        #             if feature not in df.columns:
-        #                 continue
-        #             mean_val = df[feature].mean()
-        #             if direction == 'high' and row[feature] < mean_val:
-        #                 return False
-        #             if direction == 'low' and row[feature] > mean_val:
-        #                 return False
-        #         return True
-        #
-        #     # 应用规则
-        #     df_partner['rule_match'] = df_partner.apply(is_pass_candidate, axis=1,
-        #                                                 args=(df_partner, feature_directions))
-        #
-        #     # 统计匹配情况
-        #     df_matched = df_partner[df_partner['rule_match']]
-        #     total_matched = len(df_matched)
-        #     correct_matches = df_matched['label'].sum()
-        #     accuracy = correct_matches / total_matched if total_matched > 0 else 0
-        #
-        #     print(f"\n=== {partner} 规则匹配分析结果 ===")
-        #     print(f"匹配的样本数: {total_matched}")
-        #     print(f"正确预测数: {correct_matches}")
-        #     print(f"规则匹配准确率: {accuracy:.2%}")
+        # comparison_results = model.compare_imbalance_strategies(X_train, Y_train_dict, X_test, Y_test_dict)
 
         print("\n=== 生成 SHAP 特征重要性图 ===")
         feature_names = [
@@ -1188,7 +1173,7 @@ def main():
                 model=rf_model,
                 X=X_partner,
                 feature_names=feature_names,
-                top_n=40,
+                top_n=20,
             )
         return model
 
