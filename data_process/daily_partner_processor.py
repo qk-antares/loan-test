@@ -444,7 +444,7 @@ class LoanDataProcessor:
             partner_data: 按合作方分组的数据
             file_date: 文件日期（格式：YYYY-MM-DD）
         """
-        # 数据清洗
+
         print("开始数据清洗...")
         cleaned_all_data = self.clean_data(all_data.copy())
 
