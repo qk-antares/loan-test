@@ -419,7 +419,6 @@ class LoanDataProcessor:
                 else:
                     safe_json_data[k] = v
 
-            # 提取特征
             features = self.extract_features(safe_json_data, feature_list, record_id)
 
         except Exception as e:
