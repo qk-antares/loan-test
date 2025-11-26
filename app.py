@@ -96,6 +96,16 @@ def predict_candidates_proba():
                 "msg": "无效的API密钥"
             })
         
+        # 数据合法性检查
+        validation_result = validate_prediction_data(data)
+        if not validation_result["valid"]:
+            logging.warning(f"预测请求 - 状态码: 400, 数据校验失败: {validation_result['msg']}")
+            return jsonify({
+                "code": 400,
+                "data": {},
+                "msg": validation_result['msg']
+            })
+        
         # 记录请求日志
         logging.info(f"请求数据 - 预测数据: {data.get('A', {})}, 合作方列表: {data.get('B', [])}")
         
@@ -119,6 +129,67 @@ def predict_candidates_proba():
             "data": {},
             "msg": f"服务器内部错误: {str(e)}"
         })
+
+def validate_prediction_data(data):
+    """验证预测数据的合法性"""
+    # 检查必需字段
+    if 'A' not in data:
+        return {"valid": False, "msg": "缺少必需字段: A"}
+    
+    if 'B' not in data:
+        return {"valid": False, "msg": "缺少必需字段: B"}
+    
+    applicant_data = data.get('A', {})
+    candidate_partners = data.get('B', [])
+    
+    # 检查申请人数据是否为字典
+    if not isinstance(applicant_data, dict):
+        return {"valid": False, "msg": "字段A必须是对象类型"}
+    
+    # 检查候选合作方是否为列表
+    if not isinstance(candidate_partners, list):
+        return {"valid": False, "msg": "字段B必须是数组类型"}
+    
+    # 检查id字段不能为空
+    if not applicant_data.get('id'):
+        return {"valid": False, "msg": "id字段不能为空"}
+    
+    # 检查其他字段的空值情况并记录到日志
+    check_empty_fields(applicant_data)
+    
+    return {"valid": True, "msg": "数据校验通过"}
+
+def check_empty_fields(applicant_data):
+    """检查字段空值并记录到日志"""
+    # 定义需要检查的字段列表
+    fields_to_check = [
+        'id', 'amount', 'idInfo.birthDate', 'idInfo.gender', 
+        'idInfo.nation', 'idInfo.validityDate', 'degree', 'maritalStatus', 
+        'income', 'companyInfo.companyName', 'companyInfo.industry', 
+        'companyInfo.occupation', 'jobFunctions', 'province', 'city', 
+        'resideFunctions', 'linkmanList.0.relationship', 
+        'linkmanList.1.relationship', 'purpose', 'customerSource', 
+        'pictureInfo.0.faceScore', 'pictureInfo.1.faceScore', 
+        'pictureInfo.2.faceScore', 'deviceInfo.osType',
+        'deviceInfo.gpsLatitude', 'deviceInfo.gpsLongitude', 
+        'deviceInfo.applyPos', 'deviceInfo.isCrossDomain', 
+        'bankCardInfo.bankCode'
+    ]
+    
+    empty_fields = []
+    
+    for field in fields_to_check:
+        value = applicant_data.get(field)
+        
+        # 检查字段是否为空（None、空字符串、空列表、空字典）
+        if value is None or value == "" or value == [] or value == {}:
+            empty_fields.append(field)
+    
+    # 记录空字段到日志（过滤掉id字段，因为id已经单独检查过了）
+    if empty_fields:
+        empty_fields_without_id = [field for field in empty_fields if field != 'id']
+        if empty_fields_without_id:
+            logging.warning(f"检测到空字段: {', '.join(empty_fields_without_id)}")
 
 @app.route('/api/fit_with_new_data', methods=['POST'])
 def fit_with_new_data():
