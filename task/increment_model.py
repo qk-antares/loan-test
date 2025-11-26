@@ -13,7 +13,7 @@ import warnings
 from pathlib import Path
 from datetime import datetime
 import joblib
-from data_loader import DataLoader
+from .data_loader import DataLoader
 
 warnings.filterwarnings('ignore')
 import shap, os, matplotlib.pyplot as plt
@@ -663,8 +663,8 @@ class LoanDistributionModel:
                 # 保存当前策略的结果
                 strategies_results[partner] = test_results
 
-                # 保存每日策略模型到 ml_result/日期/合作方/策略_model.pkl
-                partner_folder = Path("ml_result") / file_date / partner
+                # 保存每日策略模型到 task/ml_result/日期/合作方/策略_model.pkl
+                partner_folder = Path("task/ml_result") / file_date / partner
                 partner_folder.mkdir(parents=True, exist_ok=True)
                 save_path = partner_folder / f"{strategy}_model.pkl"
                 joblib.dump(model, save_path)
@@ -921,7 +921,8 @@ class LoanDistributionModel:
             all_results[strategy] = results
 
         # 总结比较结果
-        self._summarize_strategy_comparison(all_results)
+        # self._summarize_strategy_comparison(all_results)
+        print(all_results)
 
         return all_results
 

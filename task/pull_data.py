@@ -1,21 +1,23 @@
 import paramiko
-import os
+import os  
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from data_process.daily_partner_processor import LoanDataProcessor
-from increment_train import run_day_pipeline
+from .increment_train import run_day_pipeline
 import traceback
 from datetime import datetime, timedelta
 import tempfile
-# ====== SFTP 配置 ======
-SFTP_HOST = "119.84.246.217"
-SFTP_PORT = 38981
-SFTP_USER = "xiaohua"
-SFTP_PASS = "xiaohua666"
+from dotenv import load_dotenv
 
+# ====== SFTP 配置 ======
+load_dotenv()
 REMOTE_DIR = "/upload"
 LOCAL_DIR = "../data"
 LOG_PATH = "./logs/sftp_pull.log"
+SFTP_HOST = os.getenv('SFTP_HOST')
+SFTP_PORT = int(os.getenv('SFTP_PORT', 38981))
+SFTP_USER = os.getenv('SFTP_USER')
+SFTP_PASS = os.getenv('SFTP_PASS')
 
 def write_log(message: str):
     """写日志"""
@@ -124,6 +126,7 @@ if __name__ == "__main__":
     # 每分钟执行一次（测试用）
     scheduler.add_job(daily_task, "cron", minute="*")
     scheduler.start()
+
 
 
 

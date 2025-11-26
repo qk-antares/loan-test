@@ -1,0 +1,50 @@
+2025-11-26 18:49:17,437 - INFO - Flask应用启动...
+2025-11-26 18:49:17,451 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://100.64.18.73:5000
+2025-11-26 18:49:17,451 - INFO - [33mPress CTRL+C to quit[0m
+2025-11-26 18:49:34,326 - INFO - Request: GET /
+2025-11-26 18:49:34,326 - INFO - 127.0.0.1 - - [26/Nov/2025 18:49:34] "GET / HTTP/1.1" 200 -
+2025-11-26 18:49:34,347 - INFO - Request: GET /favicon.ico
+2025-11-26 18:49:34,347 - INFO - 127.0.0.1 - - [26/Nov/2025 18:49:34] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-11-26 18:51:46,504 - INFO - Request: GET /api/health_check
+2025-11-26 18:51:46,505 - INFO - 127.0.0.1 - - [26/Nov/2025 18:51:46] "[32mGET /api/health_check?key=xiaohua666 HTTP/1.1[0m" 308 -
+2025-11-26 18:51:46,509 - INFO - Request: GET /api/health_check/
+2025-11-26 18:51:46,509 - INFO - 健康检查请求 - 密钥: xiaohua666
+2025-11-26 18:51:46,509 - INFO - 健康检查 - 状态码: 200, 服务状态正常
+2025-11-26 18:51:46,510 - INFO - 127.0.0.1 - - [26/Nov/2025 18:51:46] "GET /api/health_check/?key=xiaohua666 HTTP/1.1" 200 -
+2025-11-26 18:57:16,821 - INFO - Request: GET /api/predict_candidates_proba
+2025-11-26 18:57:16,821 - INFO - 127.0.0.1 - - [26/Nov/2025 18:57:16] "[31m[1mGET /api/predict_candidates_proba HTTP/1.1[0m" 405 -
+2025-11-26 18:58:18,072 - INFO - Request: POST /api/predict_candidates_proba
+2025-11-26 18:58:18,072 - INFO - 请求数据 - 预测数据: {'amount': '100000', 'bankCardInfo.bankCode': '', 'city': '杭州市', 'companyInfo.companyName': '浙江师范大学萧山校区', 'companyInfo.industry': 'Z', 'companyInfo.occupation': '90', 'customerSource': 'XCX', 'degree': 'BACHELOR', 'idInfo.birthDate': '19920319', 'idInfo.gender': 'F', 'idInfo.nation': '汉', 'idInfo.validityDate': '2020.10.15-2040.10.15', 'income': 'D', 'jobFunctions': '01', 'linkmanList.0.relationship': 'FATHER', 'linkmanList.1.relationship': 'MOTHER', 'maritalStatus': '2', 'pictureInfo.0.faceScore': '78.31419', 'pictureInfo.1.faceScore': '78.31419', 'pictureInfo.2.faceScore': '78.31419', 'province': '浙江省', 'purpose': 'CONSUME', 'resideFunctions': '01', 'deviceInfo.gpsLatitude': '31.040912185925714', 'deviceInfo.gpsLongitude': '121.46704181988909', 'deviceInfo.osType': 'ANDROID', 'deviceInfo.isCrossDomain': '', 'deviceInfo.applyPos': '上海市闵行区吴泾镇金家塘路', 'id': '20251118000010987596'}, 合作方列表: ['LXJ_CODE', 'HXQB_CODE']
+2025-11-26 18:58:18,072 - ERROR - 预测接口异常 - 状态码: 500, 错误: [WinError 3] 系统找不到指定的路径。: 'ml_result'
+2025-11-26 18:58:18,073 - INFO - 127.0.0.1 - - [26/Nov/2025 18:58:18] "POST /api/predict_candidates_proba HTTP/1.1" 200 -
+2025-11-26 18:59:41,109 - INFO - Request: POST /api/predict_candidates_proba
+2025-11-26 18:59:41,110 - INFO - 请求数据 - 预测数据: {'amount': '100000', 'bankCardInfo.bankCode': '', 'city': '杭州市', 'companyInfo.companyName': '浙江师范大学萧山校区', 'companyInfo.industry': 'Z', 'companyInfo.occupation': '90', 'customerSource': 'XCX', 'degree': 'BACHELOR', 'idInfo.birthDate': '19920319', 'idInfo.gender': 'F', 'idInfo.nation': '汉', 'idInfo.validityDate': '2020.10.15-2040.10.15', 'income': 'D', 'jobFunctions': '01', 'linkmanList.0.relationship': 'FATHER', 'linkmanList.1.relationship': 'MOTHER', 'maritalStatus': '2', 'pictureInfo.0.faceScore': '78.31419', 'pictureInfo.1.faceScore': '78.31419', 'pictureInfo.2.faceScore': '78.31419', 'province': '浙江省', 'purpose': 'CONSUME', 'resideFunctions': '01', 'deviceInfo.gpsLatitude': '31.040912185925714', 'deviceInfo.gpsLongitude': '121.46704181988909', 'deviceInfo.osType': 'ANDROID', 'deviceInfo.isCrossDomain': '', 'deviceInfo.applyPos': '上海市闵行区吴泾镇金家塘路', 'id': '20251118000010987596'}, 合作方列表: ['LXJ_CODE', 'HXQB_CODE']
+2025-11-26 18:59:41,110 - ERROR - 预测接口异常 - 状态码: 500, 错误: [WinError 3] 系统找不到指定的路径。: 'ml_result'
+2025-11-26 18:59:41,110 - INFO - 127.0.0.1 - - [26/Nov/2025 18:59:41] "POST /api/predict_candidates_proba HTTP/1.1" 200 -
+2025-11-26 19:05:01,605 - INFO - Flask应用启动...
+2025-11-26 19:05:01,621 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://100.64.18.73:5000
+2025-11-26 19:05:01,621 - INFO - [33mPress CTRL+C to quit[0m
+2025-11-26 19:05:05,881 - INFO - Request: POST /api/predict_candidates_proba
+2025-11-26 19:05:05,881 - INFO - 请求数据 - 预测数据: {'amount': '100000', 'bankCardInfo.bankCode': '', 'city': '杭州市', 'companyInfo.companyName': '浙江师范大学萧山校区', 'companyInfo.industry': 'Z', 'companyInfo.occupation': '90', 'customerSource': 'XCX', 'degree': 'BACHELOR', 'idInfo.birthDate': '19920319', 'idInfo.gender': 'F', 'idInfo.nation': '汉', 'idInfo.validityDate': '2020.10.15-2040.10.15', 'income': 'D', 'jobFunctions': '01', 'linkmanList.0.relationship': 'FATHER', 'linkmanList.1.relationship': 'MOTHER', 'maritalStatus': '2', 'pictureInfo.0.faceScore': '78.31419', 'pictureInfo.1.faceScore': '78.31419', 'pictureInfo.2.faceScore': '78.31419', 'province': '浙江省', 'purpose': 'CONSUME', 'resideFunctions': '01', 'deviceInfo.gpsLatitude': '31.040912185925714', 'deviceInfo.gpsLongitude': '121.46704181988909', 'deviceInfo.osType': 'ANDROID', 'deviceInfo.isCrossDomain': '', 'deviceInfo.applyPos': '上海市闵行区吴泾镇金家塘路', 'id': '20251118000010987596'}, 合作方列表: ['LXJ_CODE', 'HXQB_CODE']
+2025-11-26 19:05:06,049 - INFO - 预测成功 - 状态码: 200, 概率结果: {'LXJ_CODE': 0.0267, 'HXQB_CODE': 0.4634}
+2025-11-26 19:05:06,049 - INFO - 127.0.0.1 - - [26/Nov/2025 19:05:06] "POST /api/predict_candidates_proba HTTP/1.1" 200 -
+2025-11-26 19:07:04,850 - INFO - Request: POST /api/fit_with_new_data
+2025-11-26 19:07:04,850 - INFO - 开始手动SFTP数据拉取...
+2025-11-26 19:07:05,007 - INFO - Connected (version 2.0, client OpenSSH_10.0)
+2025-11-26 19:07:05,419 - INFO - Authentication (password) successful!
+2025-11-26 19:07:06,046 - INFO - [chan 0] Opened sftp connection (server version 3)
+2025-11-26 19:07:06,456 - INFO - [chan 0] sftp session closed.
+2025-11-26 19:07:06,456 - INFO - 手动训练 - 状态码: 200, 无新数据，跳过训练
+2025-11-26 19:07:06,457 - INFO - 127.0.0.1 - - [26/Nov/2025 19:07:06] "POST /api/fit_with_new_data HTTP/1.1" 200 -
+2025-11-26 19:09:22,688 - INFO - Flask应用启动...
+2025-11-26 19:09:22,720 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://100.64.18.73:5000
+2025-11-26 19:09:22,720 - INFO - [33mPress CTRL+C to quit[0m

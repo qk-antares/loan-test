@@ -2,16 +2,16 @@ import os
 import pandas as pd
 import joblib
 from pathlib import Path
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
 from typing import List, Dict
 from data_process.daily_partner_processor import LoanDataProcessor
-from increment_model import LoanDistributionModel
-# load_dotenv()
+from .increment_model import LoanDistributionModel
+load_dotenv()
 
-API_KEY = os.getenv("API_KEY", "xiaohua666")
-MODEL_ROOT = os.getenv("MODEL_ROOT", "ml_result")
+API_KEY = os.getenv("API_KEY")
+MODEL_ROOT = os.getenv("MODEL_ROOT", "task/ml_result")
 
 feature_columns = [
     'amount',

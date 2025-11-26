@@ -1,6 +1,6 @@
 import os
-from increment_model import LoanDistributionModel
-from data_loader import DataLoader
+from .increment_model import LoanDistributionModel
+from .data_loader import DataLoader
 
 
 def run_day_pipeline():
